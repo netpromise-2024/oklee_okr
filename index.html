@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OK&Lee Family OKR</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <svg class="sprite" aria-hidden="true">
+      <symbol id="icon-target" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+      </symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24">
+        <path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 11v6M14 11v6" />
+      </symbol>
+      <symbol id="icon-download" viewBox="0 0 24 24">
+        <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+      </symbol>
+      <symbol id="icon-upload" viewBox="0 0 24 24">
+        <path d="M12 21V9M7 14l5-5 5 5M5 3h14" />
+      </symbol>
+      <symbol id="icon-rotate" viewBox="0 0 24 24">
+        <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+      </symbol>
+      <symbol id="icon-link" viewBox="0 0 24 24">
+        <path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1.14 1.14" />
+        <path d="M14 11a5 5 0 0 0-7.07 0l-2 2A5 5 0 0 0 12 20.07l1.14-1.14" />
+      </symbol>
+    </svg>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">
+          <svg><use href="#icon-target"></use></svg>
+        </div>
+        <div>
+          <p class="eyebrow">OK&Lee Family OKR</p>
+          <h1>분기 가족 OKR 설계</h1>
+        </div>
+        <div class="topbar-actions">
+          <span class="sync-pill" id="syncStatus">공유 저장소 연결 중</span>
+          <button class="icon-button" id="exportButton" type="button" title="내보내기" aria-label="내보내기">
+            <svg><use href="#icon-download"></use></svg>
+          </button>
+          <label class="icon-button file-button" title="가져오기" aria-label="가져오기">
+            <svg><use href="#icon-upload"></use></svg>
+            <input id="importInput" type="file" accept="application/json" />
+          </label>
+          <button class="icon-button" id="resetButton" type="button" title="초기화" aria-label="초기화">
+            <svg><use href="#icon-rotate"></use></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="summary-band" aria-label="분기 OKR 요약">
+          <div class="cycle-editor">
+            <label for="cycleName">분기</label>
+            <input id="cycleName" type="text" autocomplete="off" />
+          </div>
+          <div class="mission-panel">
+            <p>Family Mission</p>
+            <h2 id="missionText">사회에 기여하는 사람이 되자.</h2>
+          </div>
+          <div class="metric-grid">
+            <div class="metric">
+              <span id="confirmedObjectiveCount">0</span>
+              <p>가족 O</p>
+            </div>
+            <div class="metric">
+              <span id="familyKrCount">0</span>
+              <p>가족 KR</p>
+            </div>
+            <div class="metric">
+              <span id="personalObjectiveCount">0</span>
+              <p>개인 O</p>
+            </div>
+            <div class="metric">
+              <span id="personalPlanCount">0</span>
+              <p>개인 실행</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="value-band" aria-label="핵심가치">
+          <div class="value-grid" id="valuesGrid"></div>
+        </section>
+
+        <section class="overview-panel" aria-label="진행률 한눈에 보기">
+          <div class="overall-progress-card achievement-card">
+            <div>
+              <p class="eyebrow">달성률</p>
+              <h2>분기 가족 달성률</h2>
+              <p class="progress-caption" id="achievementCaption">개인별 1/n 가중치로 합산</p>
+            </div>
+            <strong id="overallAchievementProgress">0%</strong>
+            <div class="progress-bar achievement">
+              <span id="overallAchievementBar"></span>
+            </div>
+          </div>
+          <div class="overall-progress-card setup-card">
+            <div>
+              <p class="eyebrow">진행 현황</p>
+              <h2>분기 OKR 설계 진행률</h2>
+            </div>
+            <strong id="overallSetupProgress">0%</strong>
+            <div class="progress-bar">
+              <span id="overallSetupBar"></span>
+            </div>
+          </div>
+          <div class="step-progress-grid" id="stepProgressGrid"></div>
+          <div class="member-progress-grid" id="memberAchievementGrid"></div>
+        </section>
+
+        <nav class="workflow-nav" aria-label="OKR 진행 단계">
+          <a href="#stepObjectives">1. 가족 Objective</a>
+          <a href="#stepFamilyKrs">2. 가족 KR</a>
+          <a href="#stepPersonalPick">3. 개인 Objective 선택</a>
+          <a href="#stepPersonalBuild">4. 개인 KR · Initiative</a>
+          <a href="#stepWeeklyReview">5. 주간 리뷰</a>
+        </nav>
+
+        <section class="workflow-step" id="stepObjectives" aria-label="분기 가족 Objective 정하기">
+          <div class="step-heading">
+            <div class="step-number">1</div>
+            <div>
+              <h2>분기 가족 Objective를 정한다</h2>
+              <p>각자 후보를 적고, 필요하면 미션과 핵심가치를 반영한 추천안 3개를 가져옵니다. 투표로 분기당 2개를 확정합니다.</p>
+            </div>
+          </div>
+
+          <div class="member-tabs" id="proposalMemberTabs" aria-label="작성자 선택"></div>
+
+          <div class="two-column">
+            <form class="proposal-form" id="proposalForm">
+              <label>
+                Objective 후보
+                <input id="proposalTitle" type="text" maxlength="80" placeholder="이번 분기에 가족이 함께 이루고 싶은 모습" required />
+              </label>
+              <label>
+                연결 가치
+                <select id="proposalValue"></select>
+              </label>
+              <label>
+                메모
+                <textarea id="proposalNote" rows="3" maxlength="180" placeholder="왜 이 목표가 필요한지 짧게 적어보세요."></textarea>
+              </label>
+              <button class="primary-action" type="submit">
+                <svg><use href="#icon-plus"></use></svg>
+                <span>후보 올리기</span>
+              </button>
+            </form>
+
+            <div class="recommend-panel">
+              <div class="section-heading">
+                <div>
+                  <h3 id="recommendTitle">추천안</h3>
+                  <p>선택한 가족 구성원에게 맞춘 추천</p>
+                </div>
+                <button class="secondary-action" id="loadRecommendations" type="button">
+                  <svg><use href="#icon-plus"></use></svg>
+                  <span>3개 제시</span>
+                </button>
+              </div>
+              <div class="recommend-list" id="recommendList"></div>
+            </div>
+          </div>
+
+          <div class="section-heading">
+            <div>
+              <h3>올라온 Objective 후보</h3>
+              <p id="voteStatus">후보 0개</p>
+            </div>
+            <button class="primary-action" id="confirmObjectives" type="button">
+              <svg><use href="#icon-check"></use></svg>
+              <span>상위 2개 확정</span>
+            </button>
+          </div>
+          <div class="candidate-grid" id="candidateGrid"></div>
+        </section>
+
+        <section class="workflow-step" id="stepFamilyKrs" aria-label="확정 Objective의 가족 KR 작성">
+          <div class="step-heading">
+            <div class="step-number">2</div>
+            <div>
+              <h2>정해진 Objective의 KR 세 가지씩 적는다</h2>
+              <p>확정된 가족 Objective 2개마다 가족 KR을 최대 3개씩 작성합니다.</p>
+            </div>
+          </div>
+          <div class="family-kr-board" id="familyKrBoard"></div>
+        </section>
+
+        <section class="workflow-step" id="stepPersonalPick" aria-label="개인 Objective 선택">
+          <div class="step-heading">
+            <div class="step-number">3</div>
+            <div>
+              <h2>각자가 전체 KR 중 3가지를 본인 Objective로 가져간다</h2>
+              <p>가족 KR 풀에서 각자 3개를 선택합니다. 선택한 가족 KR이 그 사람의 Objective가 됩니다.</p>
+            </div>
+          </div>
+          <div class="member-tabs" id="personalMemberTabs" aria-label="개인 선택자"></div>
+          <div class="personal-pick-layout">
+            <div>
+              <div class="section-heading compact">
+                <h3>전체 가족 KR 풀</h3>
+                <p id="krPoolStatus">0개</p>
+              </div>
+              <div class="kr-pool" id="krPool"></div>
+            </div>
+            <div>
+              <div class="section-heading compact">
+                <h3 id="pickedTitle">선택한 내 Objective</h3>
+                <p id="pickedStatus">0/3</p>
+              </div>
+              <div class="picked-list" id="pickedList"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="workflow-step" id="stepPersonalBuild" aria-label="개인 KR과 Initiative 작성">
+          <div class="step-heading">
+            <div class="step-number">4</div>
+            <div>
+              <h2>내 Objective의 KR과 Initiative를 작성한다</h2>
+              <p>각 개인 Objective마다 개인 KR은 3가지 이내, 각 KR의 핵심 Initiative도 3가지 이내로 작성합니다.</p>
+            </div>
+          </div>
+          <div class="personal-builder" id="personalBuilder"></div>
+        </section>
+
+        <section class="workflow-step" id="stepWeeklyReview" aria-label="주간 회의 리뷰">
+          <div class="step-heading">
+            <div class="step-number">R</div>
+            <div>
+              <h2>주간 회의 리뷰</h2>
+              <p>이번 주 실행 내용, 막힌 점, 다음 주 행동을 짧게 남깁니다.</p>
+            </div>
+          </div>
+          <div class="review-layout">
+            <form class="weekly-review-form" id="weeklyReviewForm">
+              <div class="review-fields">
+                <label>
+                  작성자
+                  <select id="reviewMember"></select>
+                </label>
+                <label>
+                  연결 가치
+                  <select id="reviewValue"></select>
+                </label>
+              </div>
+              <label>
+                이번 주 리뷰
+                <textarea id="reviewBody" rows="4" maxlength="300" placeholder="무엇을 했고, 무엇이 어려웠나요?"></textarea>
+              </label>
+              <label>
+                다음 주 액션
+                <input id="reviewNextAction" type="text" maxlength="120" placeholder="다음 가족회의 전까지 할 한 가지" />
+              </label>
+              <button class="primary-action" type="submit">
+                <svg><use href="#icon-check"></use></svg>
+                <span>리뷰 저장</span>
+              </button>
+            </form>
+            <div class="weekly-review-list" id="weeklyReviewList"></div>
+          </div>
+        </section>
+
+        <section class="workflow-step map-step" aria-label="연결 지도">
+          <div class="step-heading">
+            <div class="step-number">
+              <svg><use href="#icon-link"></use></svg>
+            </div>
+            <div>
+              <h2>문어발 연결 지도</h2>
+              <p>가족 Objective에서 개인 Initiative까지 어떻게 연결되는지 한눈에 봅니다.</p>
+            </div>
+          </div>
+          <div class="connection-map" id="connectionMap"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
