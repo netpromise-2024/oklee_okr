@@ -74,7 +74,7 @@ function uid() {
 }
 
 function currentQuarterLabel(date = new Date()) {
-  return `${date.getFullYear()}년 ${Math.floor(date.getMonth() / 3) + 1}분기 OK&Lee Family OKR`;
+  return `${date.getFullYear()}년 ${Math.floor(date.getMonth() / 3) + 1}분기 OK&Lee Family Goals`;
 }
 
 function defaultMembers() {
@@ -550,22 +550,22 @@ function setupProgressItems() {
 
   return [
     {
-      title: "가족 O 확정",
+      title: "가족 목표 확정",
       detail: `${confirmed}/${confirmedTarget}`,
       progress: clampPercent((confirmed / confirmedTarget) * 100),
     },
     {
-      title: "가족 KR 작성",
+      title: "확인 결과 작성",
       detail: `${familyKrs}/${familyKrTarget}`,
       progress: clampPercent((familyKrs / familyKrTarget) * 100),
     },
     {
-      title: "개인 O 선택",
+      title: "내 목표 선택",
       detail: `${personalSelected}/${personalTarget}`,
       progress: clampPercent((personalSelected / personalTarget) * 100),
     },
     {
-      title: "개인 KR 작성",
+      title: "내 결과 작성",
       detail: `${personalKrs}/${selectedTarget}`,
       progress: personalSelected ? clampPercent((personalKrs / selectedTarget) * 100) : 0,
     },
@@ -769,7 +769,7 @@ function renderCandidates() {
 function renderFamilyKrs() {
   const objectives = confirmedObjectives();
   if (!objectives.length) {
-    elements.familyKrBoard.innerHTML = emptyState("확정 Objective가 필요해요", "1단계에서 투표로 가족 Objective 2개를 먼저 확정하세요.");
+    elements.familyKrBoard.innerHTML = emptyState("확정된 목표가 필요해요", "1단계에서 투표로 현이네 목표 2개를 먼저 확정하세요.");
     return;
   }
 
@@ -778,7 +778,7 @@ function renderFamilyKrs() {
       (objective) => `
         <article class="family-kr-card" data-objective-id="${objective.id}">
           <div>
-            <span class="pill">가족 Objective</span>
+            <span class="pill">현이네 목표</span>
             <h3>${escapeHTML(objective.title)}</h3>
           </div>
           <div class="kr-slot-list">
@@ -786,8 +786,8 @@ function renderFamilyKrs() {
               .map(
                 (kr, index) => `
                   <label>
-                    KR ${index + 1}
-                    <input class="family-kr-input" type="text" maxlength="90" value="${escapeHTML(kr.title)}" data-kr-id="${kr.id}" placeholder="측정 가능한 결과" />
+                    확인 결과 ${index + 1}
+                    <input class="family-kr-input" type="text" maxlength="90" value="${escapeHTML(kr.title)}" data-kr-id="${kr.id}" placeholder="숫자로 확인할 결과" />
                   </label>
                 `,
               )
@@ -804,7 +804,7 @@ function renderPersonalPick() {
   const pool = familyKrPool();
   const selections = personalSelections(activePersonalMemberId);
   elements.krPoolStatus.textContent = `${pool.length}개`;
-  elements.pickedTitle.textContent = `${memberLabel(member)}의 Objective`;
+  elements.pickedTitle.textContent = `${memberLabel(member)}의 목표`;
   elements.pickedStatus.textContent = `${selections.length}/${PERSONAL_OBJECTIVE_LIMIT}`;
 
   elements.krPool.innerHTML = pool.length
@@ -823,7 +823,7 @@ function renderPersonalPick() {
           `;
         })
         .join("")
-    : emptyState("가족 KR이 아직 없어요", "2단계에서 가족 KR을 먼저 작성하세요.");
+    : emptyState("확인 결과가 아직 없어요", "2단계에서 확인 결과를 먼저 작성하세요.");
 
   elements.pickedList.innerHTML = selections.length
     ? selections
@@ -838,7 +838,7 @@ function renderPersonalPick() {
           `;
         })
         .join("")
-    : emptyState("선택한 Objective가 없어요", "전체 가족 KR 풀에서 3개까지 가져갈 수 있습니다.");
+    : emptyState("선택한 내 목표가 없어요", "전체 확인 결과 풀에서 3개까지 가져갈 수 있습니다.");
 }
 
 function renderPersonalBuilder() {
@@ -847,12 +847,12 @@ function renderPersonalBuilder() {
   const selections = personalSelections(activePersonalMemberId);
 
   if (!selections.length) {
-    elements.personalBuilder.innerHTML = emptyState("작성할 개인 Objective가 없어요", "3단계에서 가족 KR을 먼저 가져가세요.");
+    elements.personalBuilder.innerHTML = emptyState("작성할 내 목표가 없어요", "3단계에서 확인 결과를 먼저 가져가세요.");
     return;
   }
 
   elements.personalBuilder.innerHTML = `
-    <div class="builder-heading">${escapeHTML(memberLabel(member))}의 개인 KR · Initiative</div>
+    <div class="builder-heading">${escapeHTML(memberLabel(member))}의 확인 결과 · 핵심 행동</div>
     <div class="personal-build-grid">
       ${selections
         .map((key) => {
@@ -861,7 +861,7 @@ function renderPersonalBuilder() {
           const plan = getPersonalPlan(activePersonalMemberId, key);
           return `
             <article class="personal-build-card" data-key="${key}">
-              <span class="parent-label">상위 가족 O · ${escapeHTML(item.objective.title)}</span>
+              <span class="parent-label">상위 가족 목표 · ${escapeHTML(item.objective.title)}</span>
               <h3>${escapeHTML(item.kr.title)}</h3>
               <div class="personal-kr-slots">
                 ${plan.personalKrs.map((personalKr, index) => renderPersonalKrSlot(key, personalKr, index)).join("")}
@@ -878,18 +878,18 @@ function renderPersonalKrSlot(key, personalKr, index) {
   return `
     <div class="personal-kr-slot" data-key="${key}" data-personal-kr-id="${personalKr.id}">
       <label>
-        내 KR ${index + 1}
-        <input class="personal-kr-input" type="text" maxlength="90" value="${escapeHTML(personalKr.title)}" placeholder="내가 달성할 측정 결과" />
+        내 결과 ${index + 1}
+        <input class="personal-kr-input" type="text" maxlength="90" value="${escapeHTML(personalKr.title)}" placeholder="내가 만들 확인 가능한 결과" />
       </label>
       <div class="kr-progress-control">
         <div>
           <span>달성률</span>
           <strong>${personalKr.progress}%</strong>
         </div>
-        <input class="range-input personal-kr-progress" type="range" min="0" max="100" step="5" value="${personalKr.progress}" style="--progress: ${personalKr.progress}%" aria-label="내 KR ${index + 1} 달성률" />
+        <input class="range-input personal-kr-progress" type="range" min="0" max="100" step="5" value="${personalKr.progress}" style="--progress: ${personalKr.progress}%" aria-label="내 결과 ${index + 1} 달성률" />
       </div>
       <label>
-        핵심 Initiative ${INITIATIVE_LIMIT}개 이내
+        핵심 행동 ${INITIATIVE_LIMIT}개 이내
         <textarea class="initiative-input" rows="3" maxlength="220" placeholder="한 줄에 하나씩 입력">${escapeHTML(personalKr.initiatives.join("\n"))}</textarea>
       </label>
     </div>
@@ -899,7 +899,7 @@ function renderPersonalKrSlot(key, personalKr, index) {
 function renderConnectionMap() {
   const objectives = confirmedObjectives();
   if (!objectives.length) {
-    elements.connectionMap.innerHTML = emptyState("연결 전입니다", "가족 Objective가 확정되면 연결 지도가 생깁니다.");
+    elements.connectionMap.innerHTML = emptyState("연결 전입니다", "현이네 목표가 확정되면 연결 지도가 생깁니다.");
     return;
   }
 
@@ -944,7 +944,7 @@ function renderMapPerson(member, key) {
   const achievement = personalObjectiveAchievement(member.id, key);
   return `
     <span class="person-node">
-      ${escapeHTML(memberLabel(member))} · KR ${personalKrCount} · I ${initiativeCount} · ${achievement}%
+      ${escapeHTML(memberLabel(member))} · 결과 ${personalKrCount} · 행동 ${initiativeCount} · ${achievement}%
     </span>
   `;
 }
@@ -1066,7 +1066,7 @@ function addCandidate(candidate) {
 
 function confirmTopObjectives() {
   if (state.objectiveCandidates.length < OBJECTIVE_LIMIT) {
-    showToast("Objective 후보가 2개 이상 필요해요.");
+    showToast("목표 후보가 2개 이상 필요해요.");
     return;
   }
 
@@ -1081,7 +1081,7 @@ function confirmTopObjectives() {
   prunePersonalSelections();
   saveState();
   render();
-  showToast("분기 가족 Objective 2개를 확정했어요.");
+  showToast("분기 현이네 목표 2개를 확정했어요.");
 }
 
 function prunePersonalSelections() {
@@ -1117,7 +1117,7 @@ elements.proposalForm.addEventListener("submit", (event) => {
   });
   elements.proposalTitle.value = "";
   elements.proposalNote.value = "";
-  showToast("Objective 후보를 올렸어요.");
+  showToast("목표 후보를 올렸어요.");
 });
 
 document.addEventListener("click", (event) => {
@@ -1182,7 +1182,7 @@ document.addEventListener("click", (event) => {
       state.personalSelections[activePersonalMemberId] = selections.filter((item) => item !== key);
     } else {
       if (selections.length >= PERSONAL_OBJECTIVE_LIMIT) {
-        showToast("개인 Objective는 3개까지만 가져갈 수 있어요.");
+        showToast("내 목표는 3개까지만 가져갈 수 있어요.");
         return;
       }
       state.personalSelections[activePersonalMemberId] = [...selections, key];
@@ -1263,7 +1263,7 @@ elements.personalBuilder.addEventListener("input", (event) => {
     kr.initiatives = lines;
     if (initiativeInput.value.split("\n").filter((line) => line.trim()).length > INITIATIVE_LIMIT) {
       initiativeInput.value = lines.join("\n");
-      showToast("Initiative는 3개까지만 입력할 수 있어요.");
+      showToast("핵심 행동은 3개까지만 입력할 수 있어요.");
     }
   }
   if (progressInput) {

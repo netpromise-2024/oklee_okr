@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OK&Lee Family OKR</title>
+    <title>OK&Lee Family Goals</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -43,8 +43,8 @@
           <svg><use href="#icon-target"></use></svg>
         </div>
         <div>
-          <p class="eyebrow">OK&Lee Family OKR</p>
-          <h1>분기 가족 OKR 설계</h1>
+          <p class="eyebrow">OK&Lee Family Goals</p>
+          <h1>현이네 분기 목표 설계</h1>
         </div>
         <div class="topbar-actions">
           <span class="sync-pill" id="syncStatus">공유 저장소 연결 중</span>
@@ -62,7 +62,7 @@
       </header>
 
       <main class="workspace">
-        <section class="summary-band" aria-label="분기 OKR 요약">
+        <section class="summary-band" aria-label="분기 목표 요약">
           <div class="cycle-editor">
             <label for="cycleName">분기</label>
             <input id="cycleName" type="text" autocomplete="off" />
@@ -74,19 +74,19 @@
           <div class="metric-grid">
             <div class="metric">
               <span id="confirmedObjectiveCount">0</span>
-              <p>가족 O</p>
+              <p>가족 목표</p>
             </div>
             <div class="metric">
               <span id="familyKrCount">0</span>
-              <p>가족 KR</p>
+              <p>확인 결과</p>
             </div>
             <div class="metric">
               <span id="personalObjectiveCount">0</span>
-              <p>개인 O</p>
+              <p>내 목표</p>
             </div>
             <div class="metric">
               <span id="personalPlanCount">0</span>
-              <p>개인 실행</p>
+              <p>내 실행</p>
             </div>
           </div>
         </section>
@@ -110,7 +110,7 @@
           <div class="overall-progress-card setup-card">
             <div>
               <p class="eyebrow">진행 현황</p>
-              <h2>분기 OKR 설계 진행률</h2>
+              <h2>분기 목표 설계 진행률</h2>
             </div>
             <strong id="overallSetupProgress">0%</strong>
             <div class="progress-bar">
@@ -121,20 +121,20 @@
           <div class="member-progress-grid" id="memberAchievementGrid"></div>
         </section>
 
-        <nav class="workflow-nav" aria-label="OKR 진행 단계">
-          <a href="#stepObjectives">1. 가족 Objective</a>
-          <a href="#stepFamilyKrs">2. 가족 KR</a>
-          <a href="#stepPersonalPick">3. 개인 Objective 선택</a>
-          <a href="#stepPersonalBuild">4. 개인 KR · Initiative</a>
+        <nav class="workflow-nav" aria-label="목표 진행 단계">
+          <a href="#stepObjectives">1. 현이네 목표</a>
+          <a href="#stepFamilyKrs">2. 확인 결과</a>
+          <a href="#stepPersonalPick">3. 내 목표 선택</a>
+          <a href="#stepPersonalBuild">4. 내 결과 · 행동</a>
           <a href="#stepWeeklyReview">5. 주간 리뷰</a>
         </nav>
 
-        <section class="workflow-step" id="stepObjectives" aria-label="분기 가족 Objective 정하기">
+        <section class="workflow-step" id="stepObjectives" aria-label="현이네 이번 분기 목표 정하기">
           <div class="step-heading">
             <div class="step-number">1</div>
             <div>
-              <h2>분기 가족 Objective를 정한다</h2>
-              <p>각자 후보를 적고, 필요하면 미션과 핵심가치를 반영한 추천안 3개를 가져옵니다. 투표로 분기당 2개를 확정합니다.</p>
+              <h2>현이네 이번 분기 목표를 정한다</h2>
+              <p>각자 목표 후보를 적고, 필요하면 미션과 핵심가치를 반영한 추천안 3개를 가져옵니다. 투표로 이번 분기 목표 2개를 확정합니다.</p>
             </div>
           </div>
 
@@ -143,7 +143,7 @@
           <div class="two-column">
             <form class="proposal-form" id="proposalForm">
               <label>
-                Objective 후보
+                목표 후보
                 <input id="proposalTitle" type="text" maxlength="80" placeholder="이번 분기에 가족이 함께 이루고 싶은 모습" required />
               </label>
               <label>
@@ -177,7 +177,7 @@
 
           <div class="section-heading">
             <div>
-              <h3>올라온 Objective 후보</h3>
+              <h3>올라온 목표 후보</h3>
               <p id="voteStatus">후보 0개</p>
             </div>
             <button class="primary-action" id="confirmObjectives" type="button">
@@ -188,37 +188,37 @@
           <div class="candidate-grid" id="candidateGrid"></div>
         </section>
 
-        <section class="workflow-step" id="stepFamilyKrs" aria-label="확정 Objective의 가족 KR 작성">
+        <section class="workflow-step" id="stepFamilyKrs" aria-label="확정 목표의 확인 결과 작성">
           <div class="step-heading">
             <div class="step-number">2</div>
             <div>
-              <h2>정해진 Objective의 KR 세 가지씩 적는다</h2>
-              <p>확정된 가족 Objective 2개마다 가족 KR을 최대 3개씩 작성합니다.</p>
+              <h2>정해진 목표의 확인 결과를 세 가지씩 적는다</h2>
+              <p>확정된 현이네 목표 2개마다 확인 결과를 최대 3개씩 작성합니다.</p>
             </div>
           </div>
           <div class="family-kr-board" id="familyKrBoard"></div>
         </section>
 
-        <section class="workflow-step" id="stepPersonalPick" aria-label="개인 Objective 선택">
+        <section class="workflow-step" id="stepPersonalPick" aria-label="내 목표 선택">
           <div class="step-heading">
             <div class="step-number">3</div>
             <div>
-              <h2>각자가 전체 KR 중 3가지를 본인 Objective로 가져간다</h2>
-              <p>가족 KR 풀에서 각자 3개를 선택합니다. 선택한 가족 KR이 그 사람의 Objective가 됩니다.</p>
+              <h2>각자가 전체 확인 결과 중 3가지를 내 목표로 가져간다</h2>
+              <p>확인 결과 풀에서 각자 3개를 선택합니다. 선택한 확인 결과가 그 사람의 이번 분기 목표가 됩니다.</p>
             </div>
           </div>
           <div class="member-tabs" id="personalMemberTabs" aria-label="개인 선택자"></div>
           <div class="personal-pick-layout">
             <div>
               <div class="section-heading compact">
-                <h3>전체 가족 KR 풀</h3>
+                <h3>전체 확인 결과 풀</h3>
                 <p id="krPoolStatus">0개</p>
               </div>
               <div class="kr-pool" id="krPool"></div>
             </div>
             <div>
               <div class="section-heading compact">
-                <h3 id="pickedTitle">선택한 내 Objective</h3>
+                <h3 id="pickedTitle">선택한 내 목표</h3>
                 <p id="pickedStatus">0/3</p>
               </div>
               <div class="picked-list" id="pickedList"></div>
@@ -226,12 +226,12 @@
           </div>
         </section>
 
-        <section class="workflow-step" id="stepPersonalBuild" aria-label="개인 KR과 Initiative 작성">
+        <section class="workflow-step" id="stepPersonalBuild" aria-label="내 결과와 핵심 행동 작성">
           <div class="step-heading">
             <div class="step-number">4</div>
             <div>
-              <h2>내 Objective의 KR과 Initiative를 작성한다</h2>
-              <p>각 개인 Objective마다 개인 KR은 3가지 이내, 각 KR의 핵심 Initiative도 3가지 이내로 작성합니다.</p>
+              <h2>내 목표의 확인 결과와 핵심 행동을 작성한다</h2>
+              <p>각 내 목표마다 확인 결과는 3가지 이내, 각 결과의 핵심 행동도 3가지 이내로 작성합니다.</p>
             </div>
           </div>
           <div class="personal-builder" id="personalBuilder"></div>
@@ -242,7 +242,7 @@
             <div class="step-number">R</div>
             <div>
               <h2>주간 회의 리뷰</h2>
-              <p>이번 주 실행 내용, 막힌 점, 다음 주 행동을 짧게 남깁니다.</p>
+              <p>이번 주에 한 행동, 막힌 점, 다음 주 행동을 짧게 남깁니다.</p>
             </div>
           </div>
           <div class="review-layout">
@@ -281,7 +281,7 @@
             </div>
             <div>
               <h2>문어발 연결 지도</h2>
-              <p>가족 Objective에서 개인 Initiative까지 어떻게 연결되는지 한눈에 봅니다.</p>
+              <p>현이네 목표에서 각자의 핵심 행동까지 어떻게 연결되는지 한눈에 봅니다.</p>
             </div>
           </div>
           <div class="connection-map" id="connectionMap"></div>
