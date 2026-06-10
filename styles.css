@@ -19,6 +19,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   min-width: 320px;
   background: var(--bg);
@@ -64,6 +68,37 @@ svg {
   padding: 20px;
 }
 
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 20px;
+}
+
+.login-card {
+  display: grid;
+  width: min(460px, 100%);
+  gap: 18px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.login-copy {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.login-form {
+  display: grid;
+  gap: 12px;
+}
+
 .topbar {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) auto;
@@ -79,7 +114,7 @@ svg {
   place-items: center;
   color: var(--accent);
   background: var(--accent-soft);
-  border: 1px solid rgba(23, 107, 97, 0.22);
+  border: 1px solid rgba(49, 130, 246, 0.18);
   border-radius: var(--radius);
 }
 
@@ -308,7 +343,7 @@ textarea:focus {
   min-height: 132px;
   padding: 15px;
   background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(222, 214, 202, 0.9);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 
@@ -341,7 +376,7 @@ textarea:focus {
   min-height: 116px;
   padding: 13px;
   background: rgba(255, 255, 255, 0.66);
-  border: 1px solid rgba(222, 214, 202, 0.9);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 
@@ -483,12 +518,142 @@ textarea:focus {
   font-weight: 850;
 }
 
+.personal-shell {
+  width: min(1180px, 100%);
+}
+
+.personal-workspace {
+  gap: 14px;
+}
+
+.personal-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 14px;
+  align-items: stretch;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.personal-hero h2 {
+  margin-bottom: 8px;
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+}
+
+.personal-hero p:not(.eyebrow) {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.personal-progress-card {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.personal-progress-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.personal-progress-card strong {
+  color: var(--accent);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.personal-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stage-card {
+  display: grid;
+  gap: 7px;
+  min-height: 132px;
+  padding: 11px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.stage-card.done {
+  background: var(--accent-soft);
+  border-color: rgba(49, 130, 246, 0.24);
+}
+
+.stage-card span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.stage-card strong {
+  font-size: 0.84rem;
+  line-height: 1.25;
+}
+
+.stage-card p {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.personal-confirmed-board,
+.admin-reward-board,
+.reward-form {
+  display: grid;
+  gap: 10px;
+}
+
+.personal-confirmed-board,
+.admin-reward-board {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.reward-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.reward-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.reward-grid {
+  display: grid;
+  grid-template-columns: minmax(86px, auto) minmax(0, 1fr);
+  gap: 7px 10px;
+}
+
+.reward-grid span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.reward-grid p {
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .workflow-nav {
   position: sticky;
   top: 0;
   z-index: 3;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
   padding: 8px;
   background: rgba(245, 246, 248, 0.9);
@@ -594,9 +759,13 @@ textarea:focus {
 .personal-build-card,
 .weekly-review-form,
 .review-card,
-.map-objective {
+.map-objective,
+.personal-step,
+.personal-stage-panel,
+.personal-hero,
+.reward-card {
   background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(222, 214, 202, 0.9);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 
@@ -605,7 +774,9 @@ textarea:focus {
 .family-kr-card,
 .personal-build-card,
 .weekly-review-form,
-.map-objective {
+.map-objective,
+.personal-step,
+.personal-stage-panel {
   display: grid;
   gap: 12px;
   padding: 14px;
@@ -633,7 +804,13 @@ textarea:focus {
 .secondary-action {
   color: var(--accent);
   background: var(--accent-soft);
-  border: 1px solid rgba(23, 107, 97, 0.2);
+  border: 1px solid rgba(49, 130, 246, 0.2);
+}
+
+.compact-action {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 0.78rem;
 }
 
 .ghost-action {
@@ -664,8 +841,8 @@ textarea:focus {
   gap: 9px;
   min-height: 188px;
   padding: 12px;
-  background: rgba(255, 250, 246, 0.8);
-  border: 1px solid rgba(222, 214, 202, 0.9);
+  background: #f8fafc;
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 
@@ -720,8 +897,8 @@ textarea:focus {
 }
 
 .candidate-card.selected {
-  border-color: rgba(23, 107, 97, 0.58);
-  box-shadow: inset 0 0 0 2px rgba(23, 107, 97, 0.1);
+  border-color: rgba(49, 130, 246, 0.58);
+  box-shadow: inset 0 0 0 2px rgba(49, 130, 246, 0.1);
 }
 
 .card-topline,
@@ -787,8 +964,8 @@ textarea:focus {
 }
 
 .kr-pool-card.selected {
-  border-color: rgba(23, 107, 97, 0.55);
-  background: rgba(217, 235, 230, 0.45);
+  border-color: rgba(49, 130, 246, 0.55);
+  background: var(--accent-soft);
 }
 
 .builder-heading {
@@ -810,7 +987,7 @@ textarea:focus {
   gap: 8px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(222, 214, 202, 0.9);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 
@@ -940,7 +1117,7 @@ textarea:focus {
 }
 
 .map-step {
-  background: #fbf8f1;
+  background: #f8fafc;
 }
 
 .map-objective {
@@ -957,7 +1134,7 @@ textarea:focus {
   gap: 7px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.68);
-  border: 1px solid rgba(222, 214, 202, 0.9);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
 }
 
@@ -974,7 +1151,7 @@ textarea:focus {
   padding: 0 8px;
   color: var(--accent);
   background: var(--accent-soft);
-  border: 1px solid rgba(23, 107, 97, 0.22);
+  border: 1px solid rgba(49, 130, 246, 0.22);
   border-radius: 999px;
   font-size: 0.74rem;
   font-weight: 900;
@@ -1029,14 +1206,17 @@ textarea:focus {
   .overview-panel,
   .two-column,
   .personal-pick-layout,
-  .review-layout {
+  .review-layout,
+  .personal-hero {
     grid-template-columns: 1fr;
   }
 
   .candidate-grid,
   .recommend-list,
   .personal-build-grid,
-  .weekly-review-list {
+  .weekly-review-list,
+  .personal-stage-grid,
+  .reward-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1082,6 +1262,10 @@ textarea:focus {
   .family-kr-board,
   .kr-pool,
   .personal-build-grid,
+  .personal-stage-grid,
+  .personal-confirmed-board,
+  .admin-reward-board,
+  .reward-form,
   .weekly-review-list,
   .review-fields {
     grid-template-columns: 1fr;
@@ -1096,6 +1280,9 @@ textarea:focus {
   }
 
   .workflow-step,
+  .personal-step,
+  .personal-stage-panel,
+  .personal-hero,
   .summary-band .cycle-editor,
   .mission-panel {
     padding: 14px;

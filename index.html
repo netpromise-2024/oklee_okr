@@ -37,7 +37,34 @@
       </symbol>
     </svg>
 
-    <div class="app-shell">
+    <section class="login-shell" id="loginShell">
+      <div class="login-card">
+        <div class="brand-mark" aria-hidden="true">
+          <svg><use href="#icon-target"></use></svg>
+        </div>
+        <div>
+          <p class="eyebrow">OK&Lee Family Goals</p>
+          <h1>현이네 목표 보드</h1>
+          <p class="login-copy">각자 로그인해서 이번 분기 목표, 확인 결과, 핵심 행동, 주간 리뷰를 관리합니다.</p>
+        </div>
+        <form class="login-form" id="loginForm">
+          <label>
+            아이디
+            <input id="loginId" type="text" autocomplete="username" placeholder="예: hyeon1" required />
+          </label>
+          <label>
+            비밀번호
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="비밀번호" required />
+          </label>
+          <button class="primary-action" type="submit">
+            <svg><use href="#icon-check"></use></svg>
+            <span>로그인</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <div class="app-shell" id="adminShell" hidden>
       <header class="topbar">
         <div class="brand-mark" aria-hidden="true">
           <svg><use href="#icon-target"></use></svg>
@@ -48,6 +75,8 @@
         </div>
         <div class="topbar-actions">
           <span class="sync-pill" id="syncStatus">공유 저장소 연결 중</span>
+          <button class="secondary-action compact-action" id="showPersonalView" type="button">개인 화면</button>
+          <button class="secondary-action compact-action" id="adminLogoutButton" type="button">로그아웃</button>
           <button class="icon-button" id="exportButton" type="button" title="내보내기" aria-label="내보내기">
             <svg><use href="#icon-download"></use></svg>
           </button>
@@ -66,6 +95,8 @@
           <div class="cycle-editor">
             <label for="cycleName">분기</label>
             <input id="cycleName" type="text" autocomplete="off" />
+            <label for="cycleStartDate">분기 시작일</label>
+            <input id="cycleStartDate" type="date" />
           </div>
           <div class="mission-panel">
             <p>Family Mission</p>
@@ -126,7 +157,8 @@
           <a href="#stepFamilyKrs">2. 확인 결과</a>
           <a href="#stepPersonalPick">3. 내 목표 선택</a>
           <a href="#stepPersonalBuild">4. 내 결과 · 행동</a>
-          <a href="#stepWeeklyReview">5. 주간 리뷰</a>
+          <a href="#stepRewards">5. 선물</a>
+          <a href="#stepWeeklyReview">6. 주간 리뷰</a>
         </nav>
 
         <section class="workflow-step" id="stepObjectives" aria-label="현이네 이번 분기 목표 정하기">
@@ -219,7 +251,7 @@
             <div>
               <div class="section-heading compact">
                 <h3 id="pickedTitle">선택한 내 목표</h3>
-                <p id="pickedStatus">0/3</p>
+                <p id="pickedStatus">0/2</p>
               </div>
               <div class="picked-list" id="pickedList"></div>
             </div>
@@ -235,6 +267,17 @@
             </div>
           </div>
           <div class="personal-builder" id="personalBuilder"></div>
+        </section>
+
+        <section class="workflow-step" id="stepRewards" aria-label="달성률 선물">
+          <div class="step-heading">
+            <div class="step-number">G</div>
+            <div>
+              <h2>달성률별 선물</h2>
+              <p>가족 목표 달성률이 70%, 80%, 90%, 95% 이상일 때 각자가 받고 싶은 선물을 모아봅니다.</p>
+            </div>
+          </div>
+          <div class="admin-reward-board" id="adminRewardBoard"></div>
         </section>
 
         <section class="workflow-step" id="stepWeeklyReview" aria-label="주간 회의 리뷰">
@@ -285,6 +328,205 @@
             </div>
           </div>
           <div class="connection-map" id="connectionMap"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="app-shell personal-shell" id="personalShell" hidden>
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">
+          <svg><use href="#icon-target"></use></svg>
+        </div>
+        <div>
+          <p class="eyebrow" id="personalEyebrow">현이네 목표 보드</p>
+          <h1 id="personalTitle">내 목표</h1>
+        </div>
+        <div class="topbar-actions">
+          <span class="sync-pill" id="personalSyncStatus">공유 저장소 연결 중</span>
+          <button class="secondary-action compact-action" id="showAdminView" type="button" hidden>관리자 페이지</button>
+          <button class="secondary-action compact-action" id="personalLogoutButton" type="button">로그아웃</button>
+        </div>
+      </header>
+
+      <main class="workspace personal-workspace">
+        <section class="personal-hero" aria-label="개인 목표 요약">
+          <div>
+            <p class="eyebrow">이번 분기</p>
+            <h2 id="personalCycleName">현이네 분기 목표</h2>
+            <p id="personalMission">사회에 기여하는 사람이 되자.</p>
+          </div>
+          <div class="personal-progress-card">
+            <span>내 달성률</span>
+            <strong id="personalAchievement">0%</strong>
+            <div class="progress-bar">
+              <span id="personalAchievementBar"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="personal-stage-panel" aria-label="분기 준비 일정">
+          <div class="section-heading">
+            <div>
+              <h2>이번 분기 준비 일정</h2>
+              <p id="personalScheduleCaption">분기 시작일 기준으로 해야 할 일을 보여줍니다.</p>
+            </div>
+          </div>
+          <div class="personal-stage-grid" id="personalStageGrid"></div>
+        </section>
+
+        <section class="personal-step" aria-label="목표 후보 작성">
+          <div class="section-heading">
+            <div>
+              <h2>1. 이번 분기 목표 후보</h2>
+              <p>분기 시작 D-15~D-13에 우리 가족이 달성했으면 하는 모습을 적습니다.</p>
+            </div>
+          </div>
+          <div class="two-column">
+            <form class="proposal-form" id="personalProposalForm">
+              <label>
+                목표 후보
+                <input id="personalProposalTitle" type="text" maxlength="80" placeholder="이번 분기에 가족이 함께 이루고 싶은 모습" required />
+              </label>
+              <label>
+                연결 가치
+                <select id="personalProposalValue"></select>
+              </label>
+              <label>
+                메모
+                <textarea id="personalProposalNote" rows="3" maxlength="180" placeholder="왜 이 목표가 필요한지 짧게 적어보세요."></textarea>
+              </label>
+              <button class="primary-action" type="submit">
+                <svg><use href="#icon-plus"></use></svg>
+                <span>후보 올리기</span>
+              </button>
+            </form>
+            <div class="recommend-panel">
+              <div class="section-heading">
+                <div>
+                  <h3>추천안</h3>
+                  <p>가족 미션과 핵심가치를 반영한 제안</p>
+                </div>
+                <button class="secondary-action" id="personalLoadRecommendations" type="button">
+                  <svg><use href="#icon-plus"></use></svg>
+                  <span>3개 제시</span>
+                </button>
+              </div>
+              <div class="recommend-list" id="personalRecommendList"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="personal-step" aria-label="목표 투표">
+          <div class="section-heading">
+            <div>
+              <h2>2. 목표 투표</h2>
+              <p>분기 시작 D-12에 각자 좋다고 생각하는 목표 후보에 투표합니다.</p>
+            </div>
+          </div>
+          <div class="candidate-grid" id="personalVoteBoard"></div>
+        </section>
+
+        <section class="personal-step" aria-label="확정 목표와 확인 결과">
+          <div class="section-heading">
+            <div>
+              <h2>3. 확정 목표와 확인 결과</h2>
+              <p>확정된 목표 2개를 보고, 목표 달성을 숫자로 확인할 결과를 함께 적습니다.</p>
+            </div>
+          </div>
+          <div class="personal-confirmed-board" id="personalConfirmedGoals"></div>
+          <div class="family-kr-board" id="personalFamilyResultBoard"></div>
+        </section>
+
+        <section class="personal-step" aria-label="내 목표 선택">
+          <div class="section-heading">
+            <div>
+              <h2>4. 내 목표 선택</h2>
+              <p>분기 시작 D-10에 전체 확인 결과 중 2가지를 내 목표로 가져갑니다.</p>
+            </div>
+          </div>
+          <div class="personal-pick-layout">
+            <div>
+              <div class="section-heading compact">
+                <h3>전체 확인 결과</h3>
+                <p id="personalPoolStatus">0개</p>
+              </div>
+              <div class="kr-pool" id="personalPickPool"></div>
+            </div>
+            <div>
+              <div class="section-heading compact">
+                <h3>내가 가져간 목표</h3>
+                <p id="personalPickedStatus">0/2</p>
+              </div>
+              <div class="picked-list" id="personalPickedGoals"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="personal-step" aria-label="내 확인 결과와 핵심 행동">
+          <div class="section-heading">
+            <div>
+              <h2>5. 내 확인 결과와 핵심 행동</h2>
+              <p>분기 시작 D-7에 내 목표의 확인 결과와 핵심 행동을 작성합니다.</p>
+            </div>
+          </div>
+          <div class="personal-builder" id="personalPlanBoard"></div>
+        </section>
+
+        <section class="personal-step" aria-label="달성률별 선물">
+          <div class="section-heading">
+            <div>
+              <h2>6. 달성률별 선물</h2>
+              <p>가족 목표 달성률이 70%, 80%, 90%, 95% 이상일 때 받고 싶은 선물을 적습니다.</p>
+            </div>
+          </div>
+          <form class="reward-form" id="rewardForm">
+            <label>
+              70% 이상 · 3만원 수준
+              <input id="reward70" type="text" maxlength="80" placeholder="예: 보드게임, 책" />
+            </label>
+            <label>
+              80% 이상 · 5만원 수준
+              <input id="reward80" type="text" maxlength="80" placeholder="예: 가족 외식, 운동용품" />
+            </label>
+            <label>
+              90% 이상 · 7만원 수준
+              <input id="reward90" type="text" maxlength="80" placeholder="예: 공연, 체험권" />
+            </label>
+            <label>
+              95% 이상 · 10만원 수준
+              <input id="reward95" type="text" maxlength="80" placeholder="예: 여행 준비금, 특별 선물" />
+            </label>
+          </form>
+        </section>
+
+        <section class="personal-step" aria-label="내 주간 리뷰">
+          <div class="section-heading">
+            <div>
+              <h2>7. 내 주간 리뷰</h2>
+              <p>매주 내 목표 기준으로 실행 내용과 다음 행동을 남깁니다.</p>
+            </div>
+          </div>
+          <div class="review-layout">
+            <form class="weekly-review-form" id="personalWeeklyReviewForm">
+              <label>
+                연결할 내 목표
+                <select id="personalReviewGoal"></select>
+              </label>
+              <label>
+                이번 주 리뷰
+                <textarea id="personalReviewBody" rows="4" maxlength="300" placeholder="이번 주에 어떤 행동을 했나요?"></textarea>
+              </label>
+              <label>
+                다음 주 행동
+                <input id="personalReviewNextAction" type="text" maxlength="120" placeholder="다음 주에 이어갈 핵심 행동" />
+              </label>
+              <button class="primary-action" type="submit">
+                <svg><use href="#icon-check"></use></svg>
+                <span>리뷰 저장</span>
+              </button>
+            </form>
+            <div class="weekly-review-list" id="personalWeeklyReviewList"></div>
+          </div>
         </section>
       </main>
     </div>

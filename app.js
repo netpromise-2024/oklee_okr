@@ -1,15 +1,25 @@
 const STORAGE_KEY = "family-okr-workflow-v2";
+const SESSION_KEY = "family-okr-session-v1";
+const VIEW_KEY = "family-okr-view-v1";
 const SUPABASE_URL = "https://laquzdfgwtxkcuxzvesg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_afRB9ccJ23fNekWd8m3ibA_uZiYUTmo";
 const SUPABASE_TABLE = "family_okr_state";
 const SUPABASE_ROW_ID = "oklee-family-okr";
 const OBJECTIVE_LIMIT = 2;
-const PERSONAL_OBJECTIVE_LIMIT = 3;
+const PERSONAL_OBJECTIVE_LIMIT = 2;
 const KR_LIMIT = 3;
 const INITIATIVE_LIMIT = 3;
+const FAMILY_PASSWORD = "hyeon00#";
 
 const elements = {
+  loginShell: document.querySelector("#loginShell"),
+  loginForm: document.querySelector("#loginForm"),
+  loginId: document.querySelector("#loginId"),
+  loginPassword: document.querySelector("#loginPassword"),
+  adminShell: document.querySelector("#adminShell"),
+  personalShell: document.querySelector("#personalShell"),
   cycleName: document.querySelector("#cycleName"),
+  cycleStartDate: document.querySelector("#cycleStartDate"),
   missionText: document.querySelector("#missionText"),
   valuesGrid: document.querySelector("#valuesGrid"),
   confirmedObjectiveCount: document.querySelector("#confirmedObjectiveCount"),
@@ -42,6 +52,7 @@ const elements = {
   pickedStatus: document.querySelector("#pickedStatus"),
   pickedList: document.querySelector("#pickedList"),
   personalBuilder: document.querySelector("#personalBuilder"),
+  adminRewardBoard: document.querySelector("#adminRewardBoard"),
   weeklyReviewForm: document.querySelector("#weeklyReviewForm"),
   reviewMember: document.querySelector("#reviewMember"),
   reviewValue: document.querySelector("#reviewValue"),
@@ -53,12 +64,51 @@ const elements = {
   importInput: document.querySelector("#importInput"),
   resetButton: document.querySelector("#resetButton"),
   syncStatus: document.querySelector("#syncStatus"),
+  personalSyncStatus: document.querySelector("#personalSyncStatus"),
+  showPersonalView: document.querySelector("#showPersonalView"),
+  showAdminView: document.querySelector("#showAdminView"),
+  adminLogoutButton: document.querySelector("#adminLogoutButton"),
+  personalLogoutButton: document.querySelector("#personalLogoutButton"),
+  personalEyebrow: document.querySelector("#personalEyebrow"),
+  personalTitle: document.querySelector("#personalTitle"),
+  personalCycleName: document.querySelector("#personalCycleName"),
+  personalMission: document.querySelector("#personalMission"),
+  personalAchievement: document.querySelector("#personalAchievement"),
+  personalAchievementBar: document.querySelector("#personalAchievementBar"),
+  personalScheduleCaption: document.querySelector("#personalScheduleCaption"),
+  personalStageGrid: document.querySelector("#personalStageGrid"),
+  personalProposalForm: document.querySelector("#personalProposalForm"),
+  personalProposalTitle: document.querySelector("#personalProposalTitle"),
+  personalProposalValue: document.querySelector("#personalProposalValue"),
+  personalProposalNote: document.querySelector("#personalProposalNote"),
+  personalLoadRecommendations: document.querySelector("#personalLoadRecommendations"),
+  personalRecommendList: document.querySelector("#personalRecommendList"),
+  personalVoteBoard: document.querySelector("#personalVoteBoard"),
+  personalConfirmedGoals: document.querySelector("#personalConfirmedGoals"),
+  personalFamilyResultBoard: document.querySelector("#personalFamilyResultBoard"),
+  personalPoolStatus: document.querySelector("#personalPoolStatus"),
+  personalPickPool: document.querySelector("#personalPickPool"),
+  personalPickedStatus: document.querySelector("#personalPickedStatus"),
+  personalPickedGoals: document.querySelector("#personalPickedGoals"),
+  personalPlanBoard: document.querySelector("#personalPlanBoard"),
+  rewardForm: document.querySelector("#rewardForm"),
+  reward70: document.querySelector("#reward70"),
+  reward80: document.querySelector("#reward80"),
+  reward90: document.querySelector("#reward90"),
+  reward95: document.querySelector("#reward95"),
+  personalWeeklyReviewForm: document.querySelector("#personalWeeklyReviewForm"),
+  personalReviewGoal: document.querySelector("#personalReviewGoal"),
+  personalReviewBody: document.querySelector("#personalReviewBody"),
+  personalReviewNextAction: document.querySelector("#personalReviewNextAction"),
+  personalWeeklyReviewList: document.querySelector("#personalWeeklyReviewList"),
   toast: document.querySelector("#toast"),
 };
 
 let state = loadState();
 let activeProposalMemberId = state.members[0].id;
 let activePersonalMemberId = state.members[0].id;
+let currentMemberId = loadSessionMemberId();
+let currentView = localStorage.getItem(VIEW_KEY) || "personal";
 let visibleRecommendationMemberId = null;
 let toastTimer;
 let remoteUpdatedAt = null;
@@ -77,14 +127,28 @@ function currentQuarterLabel(date = new Date()) {
   return `${date.getFullYear()}년 ${Math.floor(date.getMonth() / 3) + 1}분기 OK&Lee Family Goals`;
 }
 
+function formatDateInput(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function nextQuarterStartDate(date = new Date()) {
+  const currentQuarterStartMonth = Math.floor(date.getMonth() / 3) * 3;
+  const nextQuarterStartMonth = currentQuarterStartMonth + 3;
+  return new Date(date.getFullYear(), nextQuarterStartMonth, 1);
+}
+
+function defaultCycleStartDate() {
+  return formatDateInput(nextQuarterStartDate());
+}
+
 function defaultMembers() {
   return [
-    { id: "father", role: "아빠", name: "옥호성" },
-    { id: "mother", role: "엄마", name: "이건화" },
-    { id: "son1", role: "큰아들", name: "옥승현" },
-    { id: "son2", role: "둘째아들", name: "옥수현" },
-    { id: "son3", role: "셋째아들", name: "옥서현" },
-    { id: "daughter1", role: "넷째딸", name: "옥소현" },
+    { id: "father", role: "아빠", name: "옥호성", loginId: "netpromise" },
+    { id: "mother", role: "엄마", name: "이건화", loginId: "kuna00" },
+    { id: "son1", role: "큰아들", name: "옥승현", loginId: "hyeon1" },
+    { id: "son2", role: "둘째아들", name: "옥수현", loginId: "hyeon2" },
+    { id: "son3", role: "셋째아들", name: "옥서현", loginId: "hyeon3" },
+    { id: "daughter1", role: "넷째딸", name: "옥소현", loginId: "hyeon4" },
   ];
 }
 
@@ -131,6 +195,7 @@ function defaultValues() {
 function seedState() {
   return {
     cycleName: currentQuarterLabel(),
+    cycleStartDate: defaultCycleStartDate(),
     mission: "사회에 기여하는 사람이 되자.",
     values: defaultValues(),
     members: defaultMembers(),
@@ -138,6 +203,7 @@ function seedState() {
     confirmedObjectiveIds: [],
     personalSelections: {},
     personalPlans: {},
+    rewardWishes: {},
     weeklyReviews: [],
   };
 }
@@ -161,6 +227,7 @@ function normalizeState(candidateState) {
   }
   return {
     cycleName: candidateState.cycleName || currentQuarterLabel(),
+    cycleStartDate: candidateState.cycleStartDate || defaultCycleStartDate(),
     mission: candidateState.mission || "사회에 기여하는 사람이 되자.",
     values: normalizeValues(candidateState.values),
     members: normalizeMembers(candidateState.members),
@@ -172,8 +239,26 @@ function normalizeState(candidateState) {
         : {},
     personalPlans:
       candidateState.personalPlans && typeof candidateState.personalPlans === "object" ? candidateState.personalPlans : {},
+    rewardWishes:
+      candidateState.rewardWishes && typeof candidateState.rewardWishes === "object"
+        ? normalizeRewardWishes(candidateState.rewardWishes)
+        : {},
     weeklyReviews: Array.isArray(candidateState.weeklyReviews) ? candidateState.weeklyReviews.map(normalizeWeeklyReview) : [],
   };
+}
+
+function normalizeRewardWishes(rewardWishes) {
+  return Object.fromEntries(
+    Object.entries(rewardWishes).map(([memberId, wish]) => [
+      memberId,
+      {
+        p70: wish?.p70 || "",
+        p80: wish?.p80 || "",
+        p90: wish?.p90 || "",
+        p95: wish?.p95 || "",
+      },
+    ]),
+  );
 }
 
 function normalizeWeeklyReview(review) {
@@ -182,6 +267,7 @@ function normalizeWeeklyReview(review) {
     createdAt: review.createdAt || new Date().toISOString(),
     memberId: review.memberId || "father",
     valueId: review.valueId || "benevolence",
+    targetKey: review.targetKey || "",
     body: review.body || "",
     nextAction: review.nextAction || "",
   };
@@ -240,6 +326,8 @@ function saveState() {
 function setSyncStatus(message, tone = "pending") {
   elements.syncStatus.textContent = message;
   elements.syncStatus.dataset.tone = tone;
+  elements.personalSyncStatus.textContent = message;
+  elements.personalSyncStatus.dataset.tone = tone;
 }
 
 function supabaseEndpoint(query = "") {
@@ -260,6 +348,7 @@ function stateHasWork(candidateState) {
       candidateState.confirmedObjectiveIds.length ||
       Object.values(candidateState.personalSelections).some((selections) => Array.isArray(selections) && selections.length) ||
       Object.keys(candidateState.personalPlans).length ||
+      Object.keys(candidateState.rewardWishes || {}).length ||
       candidateState.weeklyReviews.length,
   );
 }
@@ -331,6 +420,9 @@ function ensureActiveMembers() {
   if (!state.members.some((member) => member.id === activePersonalMemberId)) {
     activePersonalMemberId = state.members[0].id;
   }
+  if (currentMemberId && !state.members.some((member) => member.id === currentMemberId)) {
+    logout();
+  }
 }
 
 async function pullRemoteState() {
@@ -396,6 +488,74 @@ function memberLabel(member) {
   if (member.role === "셋째아들") return "서현";
   if (member.role === "넷째딸") return "소현";
   return member.role;
+}
+
+function memberDisplayName(member) {
+  return `${memberLabel(member)} · ${member.name}`;
+}
+
+function loadSessionMemberId() {
+  return localStorage.getItem(SESSION_KEY);
+}
+
+function currentMember() {
+  return currentMemberId ? memberById(currentMemberId) : null;
+}
+
+function isAdminMember(memberId) {
+  return memberId === "father" || memberId === "mother";
+}
+
+function loginMember(loginId, password) {
+  const normalizedLoginId = loginId.trim().toLowerCase();
+  const member = state.members.find((item) => item.loginId?.toLowerCase() === normalizedLoginId);
+  if (!member || password !== FAMILY_PASSWORD) {
+    showToast("아이디 또는 비밀번호를 확인해주세요.");
+    return;
+  }
+
+  currentMemberId = member.id;
+  activeProposalMemberId = member.id;
+  activePersonalMemberId = member.id;
+  currentView = "personal";
+  localStorage.setItem(SESSION_KEY, currentMemberId);
+  localStorage.setItem(VIEW_KEY, currentView);
+  elements.loginForm.reset();
+  render();
+  showToast(`${memberLabel(member)}으로 로그인했어요.`);
+}
+
+function logout() {
+  currentMemberId = null;
+  currentView = "personal";
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.setItem(VIEW_KEY, currentView);
+  render();
+}
+
+function setView(view) {
+  if (view === "admin" && !isAdminMember(currentMemberId)) {
+    showToast("관리자 페이지는 부모만 볼 수 있어요.");
+    return;
+  }
+  currentView = view;
+  localStorage.setItem(VIEW_KEY, currentView);
+  render();
+}
+
+function applyShellVisibility() {
+  const loggedIn = Boolean(currentMemberId && state.members.some((member) => member.id === currentMemberId));
+  if (!loggedIn) {
+    elements.loginShell.hidden = false;
+    elements.adminShell.hidden = true;
+    elements.personalShell.hidden = true;
+    return;
+  }
+
+  elements.loginShell.hidden = true;
+  elements.showAdminView.hidden = !isAdminMember(currentMemberId);
+  elements.adminShell.hidden = currentView !== "admin";
+  elements.personalShell.hidden = currentView !== "personal";
 }
 
 function familyKrKey(objectiveId, krId) {
@@ -536,6 +696,89 @@ function overallAchievementProgress() {
   return averageProgress(state.members.map((member) => memberAchievement(member.id)));
 }
 
+function cycleStart() {
+  return new Date(`${state.cycleStartDate || defaultCycleStartDate()}T00:00:00`);
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function formatKoreanDate(date) {
+  return new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(date);
+}
+
+function stageItems() {
+  const start = cycleStart();
+  return [
+    {
+      title: "목표 후보 작성",
+      period: `D-15~D-13 · ${formatKoreanDate(addDays(start, -15))}~${formatKoreanDate(addDays(start, -13))}`,
+      detail: "우리 가족이 달성했으면 하는 목표를 적습니다.",
+      done: state.objectiveCandidates.some((candidate) => candidate.proposerId === currentMemberId),
+    },
+    {
+      title: "목표 투표",
+      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
+      detail: "마음에 드는 후보에 투표합니다.",
+      done: state.objectiveCandidates.some((candidate) => candidate.votes.includes(currentMemberId)),
+    },
+    {
+      title: "목표 2개 확정",
+      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
+      detail: "가족회의에서 이번 분기 목표 2개를 정합니다.",
+      done: confirmedObjectives().length === OBJECTIVE_LIMIT,
+    },
+    {
+      title: "확인 결과 작성",
+      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
+      detail: "각 목표를 숫자로 확인할 결과를 작성합니다.",
+      done: filledFamilyKrCount() >= OBJECTIVE_LIMIT * KR_LIMIT,
+    },
+    {
+      title: "내 목표 2개 선택",
+      period: `D-10 · ${formatKoreanDate(addDays(start, -10))}`,
+      detail: "전체 확인 결과 중 내 목표 2개를 가져갑니다.",
+      done: personalSelections(currentMemberId).length >= PERSONAL_OBJECTIVE_LIMIT,
+    },
+    {
+      title: "내 결과와 핵심 행동",
+      period: `D-7 · ${formatKoreanDate(addDays(start, -7))}`,
+      detail: "내 목표를 위한 확인 결과와 핵심 행동을 작성합니다.",
+      done:
+        personalSelections(currentMemberId).length > 0 &&
+        personalSelections(currentMemberId).every((key) => getPersonalPlan(currentMemberId, key).personalKrs.some((kr) => kr.title.trim())),
+    },
+    {
+      title: "달성률별 선물",
+      period: `D-7 · ${formatKoreanDate(addDays(start, -7))}`,
+      detail: "70/80/90/95% 선물을 적습니다.",
+      done: Object.values(getRewardWish(currentMemberId)).some(Boolean),
+    },
+  ];
+}
+
+function getRewardWish(memberId) {
+  state.rewardWishes[memberId] ||= { p70: "", p80: "", p90: "", p95: "" };
+  return state.rewardWishes[memberId];
+}
+
+function familyKrItemByKey(key) {
+  const { objectiveId, krId } = parseFamilyKrKey(key);
+  const objective = state.objectiveCandidates.find((candidate) => candidate.id === objectiveId);
+  const kr = objective?.familyKrs.find((item) => item.id === krId);
+  if (!objective || !kr) return null;
+  return { objective, kr, key };
+}
+
+function familyKrLabelByKey(key) {
+  const item = familyKrItemByKey(key);
+  if (!item) return "연결된 목표 없음";
+  return `${item.objective.title} · ${item.kr.title}`;
+}
+
 function setupProgressItems() {
   const confirmed = confirmedObjectives().length;
   const confirmedTarget = OBJECTIVE_LIMIT;
@@ -629,6 +872,7 @@ function recommendationsFor(memberId) {
 
 function render() {
   elements.cycleName.value = state.cycleName;
+  elements.cycleStartDate.value = state.cycleStartDate || defaultCycleStartDate();
   elements.missionText.textContent = state.mission;
   renderValues();
   renderMemberTabs();
@@ -639,9 +883,12 @@ function render() {
   renderFamilyKrs();
   renderPersonalPick();
   renderPersonalBuilder();
+  renderAdminRewards();
   renderWeeklyReviews();
   renderConnectionMap();
   renderMetrics();
+  renderPersonalApp();
+  applyShellVisibility();
 }
 
 function renderValues() {
@@ -700,6 +947,269 @@ function renderRecommendations() {
             <svg><use href="#icon-plus"></use></svg>
             <span>후보로 올리기</span>
           </button>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderPersonalApp() {
+  const member = currentMember();
+  if (!member) return;
+
+  const progress = memberAchievement(member.id);
+  const reward = getRewardWish(member.id);
+  const selections = personalSelections(member.id);
+  const pool = familyKrPool();
+  const startDate = cycleStart();
+
+  elements.personalEyebrow.textContent = memberDisplayName(member);
+  elements.personalTitle.textContent = `${memberLabel(member)}의 이번 분기 목표`;
+  elements.personalCycleName.textContent = state.cycleName;
+  elements.personalMission.textContent = state.mission;
+  elements.personalAchievement.textContent = `${progress}%`;
+  elements.personalAchievementBar.style.width = `${progress}%`;
+  elements.personalScheduleCaption.textContent = `분기 시작일 ${formatKoreanDate(startDate)} 기준으로 준비 일정을 보여줍니다.`;
+  elements.showAdminView.hidden = !isAdminMember(member.id);
+
+  elements.personalProposalValue.innerHTML = state.values
+    .map((value) => `<option value="${value.id}">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</option>`)
+    .join("");
+
+  elements.personalStageGrid.innerHTML = stageItems()
+    .map(
+      (item) => `
+        <article class="stage-card ${item.done ? "done" : ""}">
+          <span>${escapeHTML(item.period)}</span>
+          <strong>${escapeHTML(item.title)}</strong>
+          <p>${escapeHTML(item.detail)}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  renderPersonalRecommendations(member.id);
+  renderPersonalVoteBoard(member.id);
+  renderPersonalConfirmedGoals();
+  renderPersonalFamilyResultBoard();
+  renderPersonalPickArea(member.id, pool, selections);
+  renderPersonalPlanBoard(member.id, pool, selections);
+  renderRewardForm(reward);
+  renderPersonalReviewForm(member.id, selections);
+  renderPersonalWeeklyReviews(member.id);
+}
+
+function renderPersonalRecommendations(memberId) {
+  if (visibleRecommendationMemberId !== memberId) {
+    elements.personalRecommendList.innerHTML = emptyState("추천안이 필요할 때만 열어보세요", "가족 미션과 핵심가치를 반영해 3개를 제시합니다.");
+    return;
+  }
+
+  elements.personalRecommendList.innerHTML = recommendationsFor(memberId)
+    .map((candidate) => {
+      const value = valueById(candidate.valueId);
+      return `
+        <article class="recommend-card">
+          <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
+          <h4>${escapeHTML(candidate.title)}</h4>
+          <p>${escapeHTML(candidate.note)}</p>
+          <button class="ghost-action add-personal-recommendation" type="button" data-title="${escapeHTML(candidate.title)}" data-value-id="${candidate.valueId}" data-note="${escapeHTML(candidate.note)}">
+            <svg><use href="#icon-plus"></use></svg>
+            <span>후보로 올리기</span>
+          </button>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderPersonalVoteBoard(memberId) {
+  const ranked = candidateRanked();
+  if (!ranked.length) {
+    elements.personalVoteBoard.innerHTML = emptyState("투표할 후보가 없어요", "먼저 목표 후보를 올려보세요.");
+    return;
+  }
+
+  elements.personalVoteBoard.innerHTML = ranked
+    .map((candidate, index) => {
+      const proposer = memberById(candidate.proposerId);
+      const value = valueById(candidate.valueId);
+      const voted = candidate.votes.includes(memberId);
+      return `
+        <article class="candidate-card ${voted ? "selected" : ""}" data-personal-vote-candidate-id="${candidate.id}">
+          <div class="card-topline">
+            <span class="rank-badge">${index < OBJECTIVE_LIMIT ? `TOP ${index + 1}` : "후보"}</span>
+            <span class="pill">${candidate.votes.length}표</span>
+          </div>
+          <h3>${escapeHTML(candidate.title)}</h3>
+          <p>${escapeHTML(candidate.note || "메모 없음")}</p>
+          <div class="candidate-meta">
+            <span class="pill">${escapeHTML(memberLabel(proposer))}</span>
+            <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
+          </div>
+          <button class="${voted ? "secondary-action" : "primary-action"} personal-vote-button" type="button">
+            <svg><use href="${voted ? "#icon-check" : "#icon-plus"}"></use></svg>
+            <span>${voted ? "투표함" : "투표하기"}</span>
+          </button>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderPersonalConfirmedGoals() {
+  const objectives = confirmedObjectives();
+  if (!objectives.length) {
+    elements.personalConfirmedGoals.innerHTML = emptyState("아직 확정된 목표가 없어요", "목표 투표 후 가족회의에서 2개를 확정합니다.");
+    return;
+  }
+
+  elements.personalConfirmedGoals.innerHTML = objectives
+    .map(
+      (objective) => `
+        <article class="picked-card">
+          <span class="parent-label">현이네 목표</span>
+          <h4>${escapeHTML(objective.title)}</h4>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderPersonalFamilyResultBoard() {
+  const objectives = confirmedObjectives();
+  if (!objectives.length) {
+    elements.personalFamilyResultBoard.innerHTML = emptyState("확인 결과를 적을 목표가 없어요", "현이네 목표 2개가 확정되면 작성할 수 있습니다.");
+    return;
+  }
+
+  elements.personalFamilyResultBoard.innerHTML = objectives
+    .map(
+      (objective) => `
+        <article class="family-kr-card" data-objective-id="${objective.id}">
+          <div>
+            <span class="pill">현이네 목표</span>
+            <h3>${escapeHTML(objective.title)}</h3>
+          </div>
+          <div class="kr-slot-list">
+            ${objective.familyKrs
+              .map(
+                (kr, index) => `
+                  <label>
+                    확인 결과 ${index + 1}
+                    <input class="family-kr-input" type="text" maxlength="90" value="${escapeHTML(kr.title)}" data-kr-id="${kr.id}" placeholder="숫자로 확인할 결과" />
+                  </label>
+                `,
+              )
+              .join("")}
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderPersonalPickArea(memberId, pool, selections) {
+  elements.personalPoolStatus.textContent = `${pool.length}개`;
+  elements.personalPickedStatus.textContent = `${selections.length}/${PERSONAL_OBJECTIVE_LIMIT}`;
+
+  elements.personalPickPool.innerHTML = pool.length
+    ? pool
+        .map((item) => {
+          const selected = selections.includes(item.key);
+          return `
+            <article class="kr-pool-card ${selected ? "selected" : ""}" data-key="${item.key}">
+              <span class="parent-label">${escapeHTML(item.objective.title)}</span>
+              <h4>${escapeHTML(item.kr.title)}</h4>
+              <button class="${selected ? "secondary-action" : "ghost-action"} personal-toggle-pick" type="button">
+                <svg><use href="${selected ? "#icon-check" : "#icon-plus"}"></use></svg>
+                <span>${selected ? "가져감" : "가져가기"}</span>
+              </button>
+            </article>
+          `;
+        })
+        .join("")
+    : emptyState("확인 결과가 아직 없어요", "먼저 목표별 확인 결과를 작성하세요.");
+
+  elements.personalPickedGoals.innerHTML = selections.length
+    ? selections
+        .map((key) => {
+          const item = pool.find((kr) => kr.key === key);
+          if (!item) return "";
+          return `
+            <article class="picked-card">
+              <span class="parent-label">${escapeHTML(item.objective.title)}</span>
+              <h4>${escapeHTML(item.kr.title)}</h4>
+            </article>
+          `;
+        })
+        .join("")
+    : emptyState("아직 가져간 목표가 없어요", "전체 확인 결과 중 2개를 내 목표로 가져갑니다.");
+}
+
+function renderPersonalPlanBoard(memberId, pool, selections) {
+  if (!selections.length) {
+    elements.personalPlanBoard.innerHTML = emptyState("작성할 내 목표가 없어요", "먼저 확인 결과 2개를 내 목표로 가져가세요.");
+    return;
+  }
+
+  elements.personalPlanBoard.innerHTML = `
+    <div class="personal-build-grid">
+      ${selections
+        .map((key) => {
+          const item = pool.find((kr) => kr.key === key);
+          if (!item) return "";
+          const plan = getPersonalPlan(memberId, key);
+          return `
+            <article class="personal-build-card" data-key="${key}">
+              <span class="parent-label">상위 가족 목표 · ${escapeHTML(item.objective.title)}</span>
+              <h3>${escapeHTML(item.kr.title)}</h3>
+              <div class="personal-kr-slots">
+                ${plan.personalKrs.map((personalKr, index) => renderPersonalKrSlot(key, personalKr, index)).join("")}
+              </div>
+            </article>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function renderRewardForm(reward) {
+  elements.reward70.value = reward.p70 || "";
+  elements.reward80.value = reward.p80 || "";
+  elements.reward90.value = reward.p90 || "";
+  elements.reward95.value = reward.p95 || "";
+}
+
+function renderPersonalReviewForm(memberId, selections) {
+  elements.personalReviewGoal.innerHTML = selections.length
+    ? selections
+        .map((key) => `<option value="${escapeHTML(key)}">${escapeHTML(familyKrLabelByKey(key))}</option>`)
+        .join("")
+    : `<option value="">가져간 목표가 없어요</option>`;
+  elements.personalReviewGoal.disabled = !selections.length;
+}
+
+function renderPersonalWeeklyReviews(memberId) {
+  const reviews = state.weeklyReviews.filter((review) => review.memberId === memberId);
+  if (!reviews.length) {
+    elements.personalWeeklyReviewList.innerHTML = emptyState("아직 내 주간 리뷰가 없어요", "이번 주 실행 내용과 다음 행동을 남겨보세요.");
+    return;
+  }
+
+  elements.personalWeeklyReviewList.innerHTML = reviews
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map((review) => {
+      const date = new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(new Date(review.createdAt));
+      return `
+        <article class="review-card">
+          <div class="review-card-head">
+            <strong>${escapeHTML(date)}</strong>
+            <span>${escapeHTML(familyKrLabelByKey(review.targetKey))}</span>
+          </div>
+          <p>${escapeHTML(review.body)}</p>
+          ${review.nextAction ? `<small>다음 행동 · ${escapeHTML(review.nextAction)}</small>` : ""}
         </article>
       `;
     })
@@ -838,7 +1348,7 @@ function renderPersonalPick() {
           `;
         })
         .join("")
-    : emptyState("선택한 내 목표가 없어요", "전체 확인 결과 풀에서 3개까지 가져갈 수 있습니다.");
+    : emptyState("선택한 내 목표가 없어요", `전체 확인 결과 풀에서 ${PERSONAL_OBJECTIVE_LIMIT}개까지 가져갈 수 있습니다.`);
 }
 
 function renderPersonalBuilder() {
@@ -972,8 +1482,28 @@ function renderWeeklyReviews() {
             <span>${escapeHTML(date)}</span>
           </div>
           <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
+          ${review.targetKey ? `<small>${escapeHTML(familyKrLabelByKey(review.targetKey))}</small>` : ""}
           <p>${escapeHTML(review.body)}</p>
           ${review.nextAction ? `<small>다음 액션 · ${escapeHTML(review.nextAction)}</small>` : ""}
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderAdminRewards() {
+  elements.adminRewardBoard.innerHTML = state.members
+    .map((member) => {
+      const reward = getRewardWish(member.id);
+      return `
+        <article class="reward-card">
+          <strong>${escapeHTML(memberDisplayName(member))}</strong>
+          <div class="reward-grid">
+            <span>70% · 3만원</span><p>${escapeHTML(reward.p70 || "미입력")}</p>
+            <span>80% · 5만원</span><p>${escapeHTML(reward.p80 || "미입력")}</p>
+            <span>90% · 7만원</span><p>${escapeHTML(reward.p90 || "미입력")}</p>
+            <span>95% · 10만원</span><p>${escapeHTML(reward.p95 || "미입력")}</p>
+          </div>
         </article>
       `;
     })
@@ -1100,10 +1630,84 @@ function showToast(message) {
   }, 2000);
 }
 
+function updateFamilyKrInput(event) {
+  const input = event.target.closest(".family-kr-input");
+  if (!input) return false;
+  const card = input.closest(".family-kr-card");
+  const objective = state.objectiveCandidates.find((candidate) => candidate.id === card.dataset.objectiveId);
+  const kr = objective?.familyKrs.find((item) => item.id === input.dataset.krId);
+  if (!kr) return false;
+  kr.title = input.value.trim();
+  prunePersonalSelections();
+  saveState();
+  renderPersonalPick();
+  renderPersonalBuilder();
+  renderPersonalApp();
+  renderConnectionMap();
+  renderMetrics();
+  return true;
+}
+
+function updatePersonalPlanInput(event, memberId) {
+  const slot = event.target.closest(".personal-kr-slot");
+  if (!slot) return false;
+  const plan = getPersonalPlan(memberId, slot.dataset.key);
+  const kr = plan.personalKrs.find((item) => item.id === slot.dataset.personalKrId);
+  if (!kr) return false;
+
+  const titleInput = event.target.closest(".personal-kr-input");
+  const initiativeInput = event.target.closest(".initiative-input");
+  const progressInput = event.target.closest(".personal-kr-progress");
+  if (titleInput) {
+    kr.title = titleInput.value.trim();
+  }
+  if (initiativeInput) {
+    const lines = initiativeInput.value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(0, INITIATIVE_LIMIT);
+    kr.initiatives = lines;
+    if (initiativeInput.value.split("\n").filter((line) => line.trim()).length > INITIATIVE_LIMIT) {
+      initiativeInput.value = lines.join("\n");
+      showToast("핵심 행동은 3개까지만 입력할 수 있어요.");
+    }
+  }
+  if (progressInput) {
+    kr.progress = clampPercent(Number(progressInput.value));
+    progressInput.style.setProperty("--progress", `${kr.progress}%`);
+    const progressValue = slot.querySelector(".kr-progress-control strong");
+    if (progressValue) {
+      progressValue.textContent = `${kr.progress}%`;
+    }
+  }
+  saveState();
+  renderPersonalApp();
+  renderConnectionMap();
+  renderMetrics();
+  return true;
+}
+
 elements.cycleName.addEventListener("input", () => {
   state.cycleName = elements.cycleName.value.trim() || currentQuarterLabel();
   saveState();
 });
+
+elements.cycleStartDate.addEventListener("input", () => {
+  state.cycleStartDate = elements.cycleStartDate.value || defaultCycleStartDate();
+  saveState();
+  renderPersonalApp();
+});
+
+elements.loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  loginMember(elements.loginId.value, elements.loginPassword.value);
+});
+
+elements.showPersonalView.addEventListener("click", () => setView("personal"));
+elements.showAdminView.addEventListener("click", () => setView("admin"));
+elements.adminLogoutButton.addEventListener("click", logout);
+elements.personalLogoutButton.addEventListener("click", logout);
 
 elements.proposalForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -1118,6 +1722,22 @@ elements.proposalForm.addEventListener("submit", (event) => {
   elements.proposalTitle.value = "";
   elements.proposalNote.value = "";
   showToast("목표 후보를 올렸어요.");
+});
+
+elements.personalProposalForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const member = currentMember();
+  const title = elements.personalProposalTitle.value.trim();
+  if (!member || !title) return;
+  addCandidate({
+    proposerId: member.id,
+    title,
+    valueId: elements.personalProposalValue.value,
+    note: elements.personalProposalNote.value.trim(),
+  });
+  elements.personalProposalTitle.value = "";
+  elements.personalProposalNote.value = "";
+  showToast("내 목표 후보를 올렸어요.");
 });
 
 document.addEventListener("click", (event) => {
@@ -1142,6 +1762,34 @@ document.addEventListener("click", (event) => {
       note: recommendation.dataset.note,
     });
     showToast("추천안을 후보로 올렸어요.");
+    return;
+  }
+
+  const personalRecommendation = event.target.closest(".add-personal-recommendation");
+  if (personalRecommendation) {
+    const member = currentMember();
+    if (!member) return;
+    addCandidate({
+      proposerId: member.id,
+      title: personalRecommendation.dataset.title,
+      valueId: personalRecommendation.dataset.valueId,
+      note: personalRecommendation.dataset.note,
+    });
+    showToast("추천안을 후보로 올렸어요.");
+    return;
+  }
+
+  const personalVoteButton = event.target.closest(".personal-vote-button");
+  if (personalVoteButton) {
+    const member = currentMember();
+    const card = personalVoteButton.closest("[data-personal-vote-candidate-id]");
+    const candidate = state.objectiveCandidates.find((item) => item.id === card?.dataset.personalVoteCandidateId);
+    if (!member || !candidate) return;
+    candidate.votes = candidate.votes.includes(member.id)
+      ? candidate.votes.filter((id) => id !== member.id)
+      : [...candidate.votes, member.id];
+    saveState();
+    render();
     return;
   }
 
@@ -1173,6 +1821,28 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const personalPickButton = event.target.closest(".personal-toggle-pick");
+  if (personalPickButton) {
+    const member = currentMember();
+    const card = personalPickButton.closest(".kr-pool-card");
+    const key = card.dataset.key;
+    if (!member) return;
+    const selections = personalSelections(member.id);
+    if (selections.includes(key)) {
+      state.personalSelections[member.id] = selections.filter((item) => item !== key);
+    } else {
+      if (selections.length >= PERSONAL_OBJECTIVE_LIMIT) {
+        showToast(`내 목표는 ${PERSONAL_OBJECTIVE_LIMIT}개까지만 가져갈 수 있어요.`);
+        return;
+      }
+      state.personalSelections[member.id] = [...selections, key];
+      getPersonalPlan(member.id, key);
+    }
+    saveState();
+    render();
+    return;
+  }
+
   const pickButton = event.target.closest(".toggle-pick");
   if (pickButton) {
     const card = pickButton.closest(".kr-pool-card");
@@ -1182,7 +1852,7 @@ document.addEventListener("click", (event) => {
       state.personalSelections[activePersonalMemberId] = selections.filter((item) => item !== key);
     } else {
       if (selections.length >= PERSONAL_OBJECTIVE_LIMIT) {
-        showToast("내 목표는 3개까지만 가져갈 수 있어요.");
+        showToast(`내 목표는 ${PERSONAL_OBJECTIVE_LIMIT}개까지만 가져갈 수 있어요.`);
         return;
       }
       state.personalSelections[activePersonalMemberId] = [...selections, key];
@@ -1198,6 +1868,14 @@ elements.loadRecommendations.addEventListener("click", () => {
   visibleRecommendationMemberId = activeProposalMemberId;
   renderRecommendations();
   showToast(`${memberLabel(memberById(activeProposalMemberId))} 추천안 3개를 제시했어요.`);
+});
+
+elements.personalLoadRecommendations.addEventListener("click", () => {
+  const member = currentMember();
+  if (!member) return;
+  visibleRecommendationMemberId = member.id;
+  renderPersonalRecommendations(member.id);
+  showToast(`${memberLabel(member)} 추천안 3개를 제시했어요.`);
 });
 
 elements.weeklyReviewForm.addEventListener("submit", (event) => {
@@ -1226,57 +1904,65 @@ elements.weeklyReviewForm.addEventListener("submit", (event) => {
 });
 
 elements.familyKrBoard.addEventListener("input", (event) => {
-  const input = event.target.closest(".family-kr-input");
-  if (!input) return;
-  const card = input.closest(".family-kr-card");
-  const objective = state.objectiveCandidates.find((candidate) => candidate.id === card.dataset.objectiveId);
-  const kr = objective?.familyKrs.find((item) => item.id === input.dataset.krId);
-  if (!kr) return;
-  kr.title = input.value.trim();
-  prunePersonalSelections();
-  saveState();
-  renderPersonalPick();
-  renderPersonalBuilder();
-  renderConnectionMap();
-  renderMetrics();
+  updateFamilyKrInput(event);
 });
 
-elements.personalBuilder.addEventListener("input", (event) => {
-  const slot = event.target.closest(".personal-kr-slot");
-  if (!slot) return;
-  const plan = getPersonalPlan(activePersonalMemberId, slot.dataset.key);
-  const kr = plan.personalKrs.find((item) => item.id === slot.dataset.personalKrId);
-  if (!kr) return;
+elements.personalFamilyResultBoard.addEventListener("input", updateFamilyKrInput);
 
-  const titleInput = event.target.closest(".personal-kr-input");
-  const initiativeInput = event.target.closest(".initiative-input");
-  const progressInput = event.target.closest(".personal-kr-progress");
-  if (titleInput) {
-    kr.title = titleInput.value.trim();
-  }
-  if (initiativeInput) {
-    const lines = initiativeInput.value
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .slice(0, INITIATIVE_LIMIT);
-    kr.initiatives = lines;
-    if (initiativeInput.value.split("\n").filter((line) => line.trim()).length > INITIATIVE_LIMIT) {
-      initiativeInput.value = lines.join("\n");
-      showToast("핵심 행동은 3개까지만 입력할 수 있어요.");
-    }
-  }
-  if (progressInput) {
-    kr.progress = clampPercent(Number(progressInput.value));
-    progressInput.style.setProperty("--progress", `${kr.progress}%`);
-    const progressValue = slot.querySelector(".kr-progress-control strong");
-    if (progressValue) {
-      progressValue.textContent = `${kr.progress}%`;
-    }
-  }
+elements.personalBuilder.addEventListener("input", (event) => {
+  updatePersonalPlanInput(event, activePersonalMemberId);
+});
+
+elements.personalPlanBoard.addEventListener("input", (event) => {
+  const member = currentMember();
+  if (!member) return;
+  updatePersonalPlanInput(event, member.id);
+});
+
+elements.rewardForm.addEventListener("input", () => {
+  const member = currentMember();
+  if (!member) return;
+  state.rewardWishes[member.id] = {
+    p70: elements.reward70.value.trim(),
+    p80: elements.reward80.value.trim(),
+    p90: elements.reward90.value.trim(),
+    p95: elements.reward95.value.trim(),
+  };
   saveState();
-  renderConnectionMap();
+  renderAdminRewards();
+});
+
+elements.personalWeeklyReviewForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const member = currentMember();
+  const targetKey = elements.personalReviewGoal.value;
+  const body = elements.personalReviewBody.value.trim();
+  const nextAction = elements.personalReviewNextAction.value.trim();
+  if (!member || !targetKey) {
+    showToast("먼저 내 목표 2개를 가져가세요.");
+    return;
+  }
+  if (!body && !nextAction) {
+    showToast("리뷰나 다음 행동 중 하나는 입력해주세요.");
+    return;
+  }
+
+  state.weeklyReviews.push({
+    id: uid(),
+    createdAt: new Date().toISOString(),
+    memberId: member.id,
+    valueId: "integrity",
+    targetKey,
+    body,
+    nextAction,
+  });
+  elements.personalReviewBody.value = "";
+  elements.personalReviewNextAction.value = "";
+  saveState();
+  renderPersonalWeeklyReviews(member.id);
+  renderWeeklyReviews();
   renderMetrics();
+  showToast("내 주간 리뷰를 저장했어요.");
 });
 
 elements.exportButton.addEventListener("click", () => {
@@ -1299,14 +1985,7 @@ elements.importInput.addEventListener("change", () => {
     try {
       const parsed = JSON.parse(reader.result);
       if (!Array.isArray(parsed.objectiveCandidates)) throw new Error("invalid");
-      state = {
-        ...seedState(),
-        ...parsed,
-        values: normalizeValues(parsed.values),
-        members: normalizeMembers(parsed.members),
-        objectiveCandidates: parsed.objectiveCandidates.map(normalizeCandidate),
-        weeklyReviews: Array.isArray(parsed.weeklyReviews) ? parsed.weeklyReviews.map(normalizeWeeklyReview) : [],
-      };
+      state = normalizeState(parsed);
       activeProposalMemberId = state.members[0].id;
       activePersonalMemberId = state.members[0].id;
       saveState();
