@@ -120,6 +120,7 @@ let currentMemberId = loadSessionMemberId();
 let currentView = localStorage.getItem(VIEW_KEY) || "personal";
 let currentPersonalStep = clampPersonalStep(Number(localStorage.getItem(PERSONAL_STEP_KEY) || 1));
 let visibleRecommendationMemberId = null;
+let editingCandidateId = null;
 let toastTimer;
 let remoteUpdatedAt = null;
 let remoteSaveTimer;
@@ -1089,26 +1090,73 @@ function renderPersonalVoteBoard(memberId) {
       const proposer = memberById(candidate.proposerId);
       const value = valueById(candidate.valueId);
       const voted = candidate.votes.includes(memberId);
+      const isEditing = editingCandidateId === candidate.id;
       return `
-        <article class="candidate-card ${voted ? "selected" : ""}" data-personal-vote-candidate-id="${candidate.id}">
+        <article class="candidate-card ${voted ? "selected" : ""}" data-candidate-id="${candidate.id}" data-personal-vote-candidate-id="${candidate.id}">
           <div class="card-topline">
             <span class="rank-badge">${index < OBJECTIVE_LIMIT ? `TOP ${index + 1}` : "후보"}</span>
-            <span class="pill">${candidate.votes.length}표</span>
+            <div class="candidate-card-actions">
+              <span class="pill">${candidate.votes.length}표</span>
+              <button class="icon-button edit-candidate" type="button" title="목표 수정" aria-label="목표 수정">
+                <svg><use href="#icon-edit"></use></svg>
+              </button>
+            </div>
           </div>
-          <h3>${escapeHTML(candidate.title)}</h3>
-          <p>${escapeHTML(candidate.note || "메모 없음")}</p>
-          <div class="candidate-meta">
-            <span class="pill">${escapeHTML(memberLabel(proposer))}</span>
-            <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
-          </div>
-          <button class="${voted ? "secondary-action" : "primary-action"} personal-vote-button" type="button">
-            <svg><use href="${voted ? "#icon-check" : "#icon-plus"}"></use></svg>
-            <span>${voted ? "투표함" : "투표하기"}</span>
-          </button>
+          ${
+            isEditing
+              ? renderCandidateEditForm(candidate)
+              : `
+                <h3>${escapeHTML(candidate.title)}</h3>
+                <p>${escapeHTML(candidate.note || "메모 없음")}</p>
+                <div class="candidate-meta">
+                  <span class="pill">${escapeHTML(memberLabel(proposer))}</span>
+                  <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
+                </div>
+                <button class="${voted ? "secondary-action" : "primary-action"} personal-vote-button" type="button">
+                  <svg><use href="${voted ? "#icon-check" : "#icon-plus"}"></use></svg>
+                  <span>${voted ? "투표함" : "투표하기"}</span>
+                </button>
+              `
+          }
         </article>
       `;
     })
     .join("");
+}
+
+function candidateValueOptions(selectedValueId) {
+  return state.values
+    .map(
+      (value) =>
+        `<option value="${value.id}" ${value.id === selectedValueId ? "selected" : ""}>${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</option>`,
+    )
+    .join("");
+}
+
+function renderCandidateEditForm(candidate) {
+  return `
+    <form class="candidate-edit-form" data-edit-candidate-id="${candidate.id}">
+      <label>
+        목표 후보
+        <input class="candidate-edit-title" type="text" maxlength="80" value="${escapeHTML(candidate.title)}" required />
+      </label>
+      <label>
+        연결 가치
+        <select class="candidate-edit-value">${candidateValueOptions(candidate.valueId)}</select>
+      </label>
+      <label>
+        메모
+        <textarea class="candidate-edit-note" rows="3" maxlength="180">${escapeHTML(candidate.note || "")}</textarea>
+      </label>
+      <div class="candidate-edit-actions">
+        <button class="secondary-action cancel-candidate-edit" type="button">취소</button>
+        <button class="primary-action" type="submit">
+          <svg><use href="#icon-check"></use></svg>
+          <span>저장</span>
+        </button>
+      </div>
+    </form>
+  `;
 }
 
 function renderPersonalConfirmedGoals() {
@@ -1298,32 +1346,44 @@ function renderCandidates() {
       const value = valueById(candidate.valueId);
       const selected = state.confirmedObjectiveIds.includes(candidate.id) ? "selected" : "";
       const rank = index < OBJECTIVE_LIMIT ? `TOP ${index + 1}` : "후보";
+      const isEditing = editingCandidateId === candidate.id;
       return `
         <article class="candidate-card ${selected}" data-candidate-id="${candidate.id}">
           <div class="card-topline">
             <span class="rank-badge">${rank}</span>
-            <button class="icon-button delete-candidate" type="button" title="삭제" aria-label="삭제">
-              <svg><use href="#icon-trash"></use></svg>
-            </button>
+            <div class="candidate-card-actions">
+              <button class="icon-button edit-candidate" type="button" title="목표 수정" aria-label="목표 수정">
+                <svg><use href="#icon-edit"></use></svg>
+              </button>
+              <button class="icon-button delete-candidate" type="button" title="삭제" aria-label="삭제">
+                <svg><use href="#icon-trash"></use></svg>
+              </button>
+            </div>
           </div>
-          <h3>${escapeHTML(candidate.title)}</h3>
-          <p>${escapeHTML(candidate.note || "메모 없음")}</p>
-          <div class="candidate-meta">
-            <span class="pill">${escapeHTML(memberLabel(proposer))}</span>
-            <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
-            <span class="pill">${candidate.votes.length}표</span>
-          </div>
-          <div class="vote-grid">
-            ${state.members
-              .map(
-                (member) => `
-                  <button class="vote-button" type="button" data-member-id="${member.id}" aria-pressed="${candidate.votes.includes(member.id)}">
-                    ${escapeHTML(memberLabel(member))}
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
+          ${
+            isEditing
+              ? renderCandidateEditForm(candidate)
+              : `
+                <h3>${escapeHTML(candidate.title)}</h3>
+                <p>${escapeHTML(candidate.note || "메모 없음")}</p>
+                <div class="candidate-meta">
+                  <span class="pill">${escapeHTML(memberLabel(proposer))}</span>
+                  <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
+                  <span class="pill">${candidate.votes.length}표</span>
+                </div>
+                <div class="vote-grid">
+                  ${state.members
+                    .map(
+                      (member) => `
+                        <button class="vote-button" type="button" data-member-id="${member.id}" aria-pressed="${candidate.votes.includes(member.id)}">
+                          ${escapeHTML(memberLabel(member))}
+                        </button>
+                      `,
+                    )
+                    .join("")}
+                </div>
+              `
+          }
         </article>
       `;
     })
@@ -1648,6 +1708,25 @@ function addCandidate(candidate) {
   render();
 }
 
+function saveCandidateEdit(form) {
+  const candidate = state.objectiveCandidates.find((item) => item.id === form.dataset.editCandidateId);
+  if (!candidate) return;
+
+  const title = form.querySelector(".candidate-edit-title")?.value.trim();
+  if (!title) {
+    showToast("목표 후보를 입력해주세요.");
+    return;
+  }
+
+  candidate.title = title;
+  candidate.valueId = form.querySelector(".candidate-edit-value")?.value || candidate.valueId;
+  candidate.note = form.querySelector(".candidate-edit-note")?.value.trim() || "";
+  editingCandidateId = null;
+  saveState();
+  render();
+  showToast("목표 후보를 수정했어요.");
+}
+
 function confirmTopObjectives() {
   if (state.objectiveCandidates.length < OBJECTIVE_LIMIT) {
     showToast("목표 후보가 2개 이상 필요해요.");
@@ -1802,7 +1881,29 @@ elements.personalProposalForm.addEventListener("submit", (event) => {
   showToast("내 목표 후보를 올렸어요.");
 });
 
+document.addEventListener("submit", (event) => {
+  const editForm = event.target.closest(".candidate-edit-form");
+  if (!editForm) return;
+  event.preventDefault();
+  saveCandidateEdit(editForm);
+});
+
 document.addEventListener("click", (event) => {
+  const editButton = event.target.closest(".edit-candidate");
+  if (editButton) {
+    const card = editButton.closest(".candidate-card");
+    editingCandidateId = card?.dataset.candidateId || null;
+    render();
+    return;
+  }
+
+  const cancelEditButton = event.target.closest(".cancel-candidate-edit");
+  if (cancelEditButton) {
+    editingCandidateId = null;
+    render();
+    return;
+  }
+
   const memberTab = event.target.closest("button[data-member-id][data-tab-type]");
   if (memberTab) {
     if (memberTab.dataset.tabType === "proposal") {
@@ -1864,6 +1965,9 @@ document.addEventListener("click", (event) => {
     if (deleteButton) {
       state.objectiveCandidates = state.objectiveCandidates.filter((item) => item.id !== candidate.id);
       state.confirmedObjectiveIds = state.confirmedObjectiveIds.filter((id) => id !== candidate.id);
+      if (editingCandidateId === candidate.id) {
+        editingCandidateId = null;
+      }
       prunePersonalSelections();
       saveState();
       render();
