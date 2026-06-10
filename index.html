@@ -374,7 +374,21 @@
           <div class="personal-stage-grid" id="personalStageGrid"></div>
         </section>
 
-        <section class="personal-step" aria-label="목표 후보 작성">
+        <section class="personal-wizard-status" aria-label="현재 단계">
+          <div>
+            <p class="eyebrow">지금 할 일</p>
+            <h2 id="personalWizardTitle">1. 이번 분기 목표 후보</h2>
+            <p id="personalWizardCaption">1/7</p>
+          </div>
+          <div class="personal-wizard-meter">
+            <strong id="personalWizardProgress">14%</strong>
+            <div class="progress-bar">
+              <span id="personalWizardBar"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="personal-step" data-wizard-step="1" aria-label="목표 후보 작성">
           <div class="section-heading">
             <div>
               <h2>1. 이번 분기 목표 후보</h2>
@@ -416,7 +430,7 @@
           </div>
         </section>
 
-        <section class="personal-step" aria-label="목표 투표">
+        <section class="personal-step" data-wizard-step="2" aria-label="목표 투표">
           <div class="section-heading">
             <div>
               <h2>2. 목표 투표</h2>
@@ -426,7 +440,7 @@
           <div class="candidate-grid" id="personalVoteBoard"></div>
         </section>
 
-        <section class="personal-step" aria-label="확정 목표와 확인 결과">
+        <section class="personal-step" data-wizard-step="3" aria-label="확정 목표와 확인 결과">
           <div class="section-heading">
             <div>
               <h2>3. 확정 목표와 확인 결과</h2>
@@ -437,7 +451,7 @@
           <div class="family-kr-board" id="personalFamilyResultBoard"></div>
         </section>
 
-        <section class="personal-step" aria-label="내 목표 선택">
+        <section class="personal-step" data-wizard-step="4" aria-label="내 목표 선택">
           <div class="section-heading">
             <div>
               <h2>4. 내 목표 선택</h2>
@@ -462,7 +476,7 @@
           </div>
         </section>
 
-        <section class="personal-step" aria-label="내 확인 결과와 핵심 행동">
+        <section class="personal-step" data-wizard-step="5" aria-label="내 확인 결과와 핵심 행동">
           <div class="section-heading">
             <div>
               <h2>5. 내 확인 결과와 핵심 행동</h2>
@@ -472,7 +486,7 @@
           <div class="personal-builder" id="personalPlanBoard"></div>
         </section>
 
-        <section class="personal-step" aria-label="달성률별 선물">
+        <section class="personal-step" data-wizard-step="6" aria-label="달성률별 선물">
           <div class="section-heading">
             <div>
               <h2>6. 달성률별 선물</h2>
@@ -499,7 +513,7 @@
           </form>
         </section>
 
-        <section class="personal-step" aria-label="내 주간 리뷰">
+        <section class="personal-step" data-wizard-step="7" aria-label="내 주간 리뷰">
           <div class="section-heading">
             <div>
               <h2>7. 내 주간 리뷰</h2>
@@ -528,6 +542,12 @@
             <div class="weekly-review-list" id="personalWeeklyReviewList"></div>
           </div>
         </section>
+
+        <nav class="personal-wizard-actions" aria-label="단계 이동">
+          <button class="secondary-action" id="personalPrevStep" type="button">이전</button>
+          <span id="personalStepCounter">1/7</span>
+          <button class="primary-action" id="personalNextStep" type="button">다음</button>
+        </nav>
       </main>
     </div>
 

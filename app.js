@@ -1,6 +1,7 @@
 const STORAGE_KEY = "family-okr-workflow-v2";
 const SESSION_KEY = "family-okr-session-v1";
 const VIEW_KEY = "family-okr-view-v1";
+const PERSONAL_STEP_KEY = "family-okr-personal-step-v1";
 const SUPABASE_URL = "https://laquzdfgwtxkcuxzvesg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_afRB9ccJ23fNekWd8m3ibA_uZiYUTmo";
 const SUPABASE_TABLE = "family_okr_state";
@@ -9,6 +10,7 @@ const OBJECTIVE_LIMIT = 2;
 const PERSONAL_OBJECTIVE_LIMIT = 2;
 const KR_LIMIT = 3;
 const INITIATIVE_LIMIT = 3;
+const PERSONAL_STEP_TOTAL = 7;
 const FAMILY_PASSWORD = "hyeon00#";
 
 const elements = {
@@ -77,6 +79,13 @@ const elements = {
   personalAchievementBar: document.querySelector("#personalAchievementBar"),
   personalScheduleCaption: document.querySelector("#personalScheduleCaption"),
   personalStageGrid: document.querySelector("#personalStageGrid"),
+  personalWizardTitle: document.querySelector("#personalWizardTitle"),
+  personalWizardCaption: document.querySelector("#personalWizardCaption"),
+  personalWizardProgress: document.querySelector("#personalWizardProgress"),
+  personalWizardBar: document.querySelector("#personalWizardBar"),
+  personalPrevStep: document.querySelector("#personalPrevStep"),
+  personalNextStep: document.querySelector("#personalNextStep"),
+  personalStepCounter: document.querySelector("#personalStepCounter"),
   personalProposalForm: document.querySelector("#personalProposalForm"),
   personalProposalTitle: document.querySelector("#personalProposalTitle"),
   personalProposalValue: document.querySelector("#personalProposalValue"),
@@ -109,6 +118,7 @@ let activeProposalMemberId = state.members[0].id;
 let activePersonalMemberId = state.members[0].id;
 let currentMemberId = loadSessionMemberId();
 let currentView = localStorage.getItem(VIEW_KEY) || "personal";
+let currentPersonalStep = clampPersonalStep(Number(localStorage.getItem(PERSONAL_STEP_KEY) || 1));
 let visibleRecommendationMemberId = null;
 let toastTimer;
 let remoteUpdatedAt = null;
@@ -636,6 +646,31 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+function clampPersonalStep(step) {
+  return Math.max(1, Math.min(PERSONAL_STEP_TOTAL, Number.isFinite(step) ? Math.round(step) : 1));
+}
+
+function personalStepMeta() {
+  return [
+    { title: "1. 이번 분기 목표 후보", caption: "우리 가족이 달성했으면 하는 목표를 작성합니다." },
+    { title: "2. 목표 투표", caption: "좋다고 생각하는 목표 후보에 투표합니다." },
+    { title: "3. 목표와 확인 결과", caption: "확정된 목표와 숫자로 확인할 결과를 작성합니다." },
+    { title: "4. 내 목표 선택", caption: "전체 확인 결과 중 2가지를 내 목표로 가져갑니다." },
+    { title: "5. 내 결과와 핵심 행동", caption: "내 목표의 확인 결과와 핵심 행동을 작성합니다." },
+    { title: "6. 달성률별 선물", caption: "70/80/90/95% 달성률별 선물을 적습니다." },
+    { title: "7. 내 주간 리뷰", caption: "매주 내 목표 기준으로 실행과 다음 행동을 남깁니다." },
+  ];
+}
+
+function setPersonalStep(step) {
+  currentPersonalStep = clampPersonalStep(step);
+  localStorage.setItem(PERSONAL_STEP_KEY, String(currentPersonalStep));
+  renderPersonalWizard();
+  if (!elements.personalShell.hidden) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
 function filledFamilyKrCount() {
   return confirmedObjectives().reduce(
     (sum, objective) => sum + objective.familyKrs.filter((kr) => kr.title.trim()).length,
@@ -997,6 +1032,25 @@ function renderPersonalApp() {
   renderRewardForm(reward);
   renderPersonalReviewForm(member.id, selections);
   renderPersonalWeeklyReviews(member.id);
+  renderPersonalWizard();
+}
+
+function renderPersonalWizard() {
+  const metas = personalStepMeta();
+  const activeIndex = currentPersonalStep - 1;
+  const progress = clampPercent((currentPersonalStep / PERSONAL_STEP_TOTAL) * 100);
+
+  document.querySelectorAll("[data-wizard-step]").forEach((panel) => {
+    panel.hidden = Number(panel.dataset.wizardStep) !== currentPersonalStep;
+  });
+
+  elements.personalWizardTitle.textContent = metas[activeIndex].title;
+  elements.personalWizardCaption.textContent = metas[activeIndex].caption;
+  elements.personalWizardProgress.textContent = `${progress}%`;
+  elements.personalWizardBar.style.width = `${progress}%`;
+  elements.personalStepCounter.textContent = `${currentPersonalStep}/${PERSONAL_STEP_TOTAL}`;
+  elements.personalPrevStep.disabled = currentPersonalStep === 1;
+  elements.personalNextStep.textContent = currentPersonalStep === PERSONAL_STEP_TOTAL ? "완료" : "다음";
 }
 
 function renderPersonalRecommendations(memberId) {
@@ -1708,6 +1762,14 @@ elements.showPersonalView.addEventListener("click", () => setView("personal"));
 elements.showAdminView.addEventListener("click", () => setView("admin"));
 elements.adminLogoutButton.addEventListener("click", logout);
 elements.personalLogoutButton.addEventListener("click", logout);
+elements.personalPrevStep.addEventListener("click", () => setPersonalStep(currentPersonalStep - 1));
+elements.personalNextStep.addEventListener("click", () => {
+  if (currentPersonalStep === PERSONAL_STEP_TOTAL) {
+    showToast("이번 분기 준비 흐름을 모두 확인했어요.");
+    return;
+  }
+  setPersonalStep(currentPersonalStep + 1);
+});
 
 elements.proposalForm.addEventListener("submit", (event) => {
   event.preventDefault();
