@@ -6,6 +6,7 @@ const SUPABASE_URL = "https://laquzdfgwtxkcuxzvesg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_afRB9ccJ23fNekWd8m3ibA_uZiYUTmo";
 const SUPABASE_TABLE = "family_okr_state";
 const SUPABASE_ROW_ID = "oklee-family-okr";
+const SHARED_APP_URL = "https://oklee-okr.onrender.com";
 const OBJECTIVE_LIMIT = 2;
 const PERSONAL_OBJECTIVE_LIMIT = 2;
 const KR_LIMIT = 3;
@@ -110,6 +111,7 @@ const elements = {
   personalReviewBody: document.querySelector("#personalReviewBody"),
   personalReviewNextAction: document.querySelector("#personalReviewNextAction"),
   personalWeeklyReviewList: document.querySelector("#personalWeeklyReviewList"),
+  shareNotice: document.querySelector("#shareNotice"),
   toast: document.querySelector("#toast"),
 };
 
@@ -364,6 +366,16 @@ function setSyncStatus(message, tone = "pending") {
   elements.personalSyncStatus.dataset.tone = tone;
 }
 
+function setupShareNotice() {
+  if (!elements.shareNotice) return;
+  const isLocalPreview = window.location.protocol === "file:";
+  elements.shareNotice.hidden = !isLocalPreview;
+  const link = elements.shareNotice.querySelector("a");
+  if (link) {
+    link.href = SHARED_APP_URL;
+  }
+}
+
 function supabaseEndpoint(query = "") {
   return `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}${query}`;
 }
@@ -421,7 +433,7 @@ async function pushRemoteState() {
     setSyncStatus("공유됨", "ok");
   } catch (error) {
     console.error(error);
-    setSyncStatus("로컬 저장 중", "error");
+    setSyncStatus("내 기기에만 저장 중", "error");
   } finally {
     remoteSaving = false;
   }
@@ -477,7 +489,7 @@ async function pullRemoteState() {
     }
   } catch (error) {
     console.error(error);
-    setSyncStatus("로컬 저장 중", "error");
+    setSyncStatus("내 기기에만 저장 중", "error");
   }
 }
 
@@ -494,8 +506,8 @@ async function initRemoteSync() {
     window.setInterval(pullRemoteState, 12000);
   } catch (error) {
     console.error(error);
-    setSyncStatus("Supabase 설정 필요", "error");
-    showToast("Supabase 테이블 설정 후 다시 열어주세요.");
+    setSyncStatus("공유 저장소 연결 필요", "error");
+    showToast("공유 저장소 연결이 필요해요.");
   }
 }
 
@@ -2248,5 +2260,6 @@ elements.resetButton.addEventListener("click", () => {
   showToast("초기화했어요.");
 });
 
+setupShareNotice();
 render();
 initRemoteSync();
