@@ -126,6 +126,7 @@ let remoteUpdatedAt = null;
 let remoteSaveTimer;
 let remoteSaving = false;
 let applyingRemoteState = false;
+let quietSavePending = false;
 
 function uid() {
   if (window.crypto?.randomUUID) {
@@ -332,6 +333,28 @@ function saveState() {
   if (!applyingRemoteState) {
     scheduleRemoteSave();
   }
+}
+
+function quietSaveState() {
+  quietSavePending = true;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function flushQuietSave(refreshPlanningPanels = false) {
+  if (!quietSavePending) return;
+  quietSavePending = false;
+  if (refreshPlanningPanels) {
+    prunePersonalSelections();
+  }
+  saveState();
+  if (refreshPlanningPanels) {
+    renderPersonalPick();
+    renderPersonalBuilder();
+    renderCurrentPersonalPlanningPanels();
+  }
+  renderCurrentPersonalProgress();
+  renderConnectionMap();
+  renderMetrics();
 }
 
 function setSyncStatus(message, tone = "pending") {
@@ -1034,6 +1057,36 @@ function renderPersonalApp() {
   renderPersonalReviewForm(member.id, selections);
   renderPersonalWeeklyReviews(member.id);
   renderPersonalWizard();
+}
+
+function renderCurrentPersonalProgress() {
+  const member = currentMember();
+  if (!member) return;
+  const progress = memberAchievement(member.id);
+  elements.personalAchievement.textContent = `${progress}%`;
+  elements.personalAchievementBar.style.width = `${progress}%`;
+  elements.personalStageGrid.innerHTML = stageItems()
+    .map(
+      (item) => `
+        <article class="stage-card ${item.done ? "done" : ""}">
+          <span>${escapeHTML(item.period)}</span>
+          <strong>${escapeHTML(item.title)}</strong>
+          <p>${escapeHTML(item.detail)}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderCurrentPersonalPlanningPanels() {
+  const member = currentMember();
+  if (!member) return;
+  const pool = familyKrPool();
+  const selections = personalSelections(member.id);
+  renderPersonalPickArea(member.id, pool, selections);
+  renderPersonalPlanBoard(member.id, pool, selections);
+  renderPersonalReviewForm(member.id, selections);
+  renderCurrentPersonalProgress();
 }
 
 function renderPersonalWizard() {
@@ -1770,14 +1823,8 @@ function updateFamilyKrInput(event) {
   const objective = state.objectiveCandidates.find((candidate) => candidate.id === card.dataset.objectiveId);
   const kr = objective?.familyKrs.find((item) => item.id === input.dataset.krId);
   if (!kr) return false;
-  kr.title = input.value.trim();
-  prunePersonalSelections();
-  saveState();
-  renderPersonalPick();
-  renderPersonalBuilder();
-  renderPersonalApp();
-  renderConnectionMap();
-  renderMetrics();
+  kr.title = input.value;
+  quietSaveState();
   return true;
 }
 
@@ -1792,7 +1839,9 @@ function updatePersonalPlanInput(event, memberId) {
   const initiativeInput = event.target.closest(".initiative-input");
   const progressInput = event.target.closest(".personal-kr-progress");
   if (titleInput) {
-    kr.title = titleInput.value.trim();
+    kr.title = titleInput.value;
+    quietSaveState();
+    return true;
   }
   if (initiativeInput) {
     const lines = initiativeInput.value
@@ -1801,10 +1850,8 @@ function updatePersonalPlanInput(event, memberId) {
       .filter(Boolean)
       .slice(0, INITIATIVE_LIMIT);
     kr.initiatives = lines;
-    if (initiativeInput.value.split("\n").filter((line) => line.trim()).length > INITIATIVE_LIMIT) {
-      initiativeInput.value = lines.join("\n");
-      showToast("핵심 행동은 3개까지만 입력할 수 있어요.");
-    }
+    quietSaveState();
+    return true;
   }
   if (progressInput) {
     kr.progress = clampPercent(Number(progressInput.value));
@@ -1813,12 +1860,13 @@ function updatePersonalPlanInput(event, memberId) {
     if (progressValue) {
       progressValue.textContent = `${kr.progress}%`;
     }
+    saveState();
+    renderCurrentPersonalProgress();
+    renderConnectionMap();
+    renderMetrics();
+    return true;
   }
-  saveState();
-  renderPersonalApp();
-  renderConnectionMap();
-  renderMetrics();
-  return true;
+  return false;
 }
 
 elements.cycleName.addEventListener("input", () => {
@@ -2075,6 +2123,18 @@ elements.familyKrBoard.addEventListener("input", (event) => {
 
 elements.personalFamilyResultBoard.addEventListener("input", updateFamilyKrInput);
 
+elements.familyKrBoard.addEventListener("focusout", (event) => {
+  if (event.target.closest(".family-kr-input")) {
+    flushQuietSave(true);
+  }
+});
+
+elements.personalFamilyResultBoard.addEventListener("focusout", (event) => {
+  if (event.target.closest(".family-kr-input")) {
+    flushQuietSave(true);
+  }
+});
+
 elements.personalBuilder.addEventListener("input", (event) => {
   updatePersonalPlanInput(event, activePersonalMemberId);
 });
@@ -2083,6 +2143,18 @@ elements.personalPlanBoard.addEventListener("input", (event) => {
   const member = currentMember();
   if (!member) return;
   updatePersonalPlanInput(event, member.id);
+});
+
+elements.personalBuilder.addEventListener("focusout", (event) => {
+  if (event.target.closest(".personal-kr-input, .initiative-input")) {
+    flushQuietSave();
+  }
+});
+
+elements.personalPlanBoard.addEventListener("focusout", (event) => {
+  if (event.target.closest(".personal-kr-input, .initiative-input")) {
+    flushQuietSave();
+  }
 });
 
 elements.rewardForm.addEventListener("input", () => {
