@@ -109,6 +109,8 @@ const elements = {
   reward95: document.querySelector("#reward95"),
   personalWeeklyReviewForm: document.querySelector("#personalWeeklyReviewForm"),
   personalReviewGoal: document.querySelector("#personalReviewGoal"),
+  personalReviewProgress: document.querySelector("#personalReviewProgress"),
+  personalReviewProgressValue: document.querySelector("#personalReviewProgressValue"),
   personalReviewBody: document.querySelector("#personalReviewBody"),
   personalReviewNextAction: document.querySelector("#personalReviewNextAction"),
   personalWeeklyReviewList: document.querySelector("#personalWeeklyReviewList"),
@@ -277,12 +279,15 @@ function normalizeRewardWishes(rewardWishes) {
 }
 
 function normalizeWeeklyReview(review) {
+  const progress =
+    review.progress === null || review.progress === undefined || review.progress === "" ? null : Number(review.progress);
   return {
     id: review.id || uid(),
     createdAt: review.createdAt || new Date().toISOString(),
     memberId: review.memberId || "father",
     valueId: review.valueId || "benevolence",
     targetKey: review.targetKey || "",
+    progress: Number.isFinite(progress) ? clampPercent(progress) : null,
     body: review.body || "",
     nextAction: review.nextAction || "",
   };
@@ -769,10 +774,22 @@ function averageProgress(items) {
   return clampPercent(items.reduce((sum, value) => sum + value, 0) / items.length);
 }
 
-function personalObjectiveAchievement(memberId, key) {
+function latestWeeklyProgress(memberId, key) {
+  const latestReview = state.weeklyReviews
+    .filter((review) => review.memberId === memberId && review.targetKey === key && Number.isFinite(review.progress))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  return latestReview ? latestReview.progress : null;
+}
+
+function personalObjectiveKrAchievement(memberId, key) {
   const plan = getPersonalPlan(memberId, key);
   const krs = plan.personalKrs.filter(personalKrActive);
   return averageProgress(krs.map((kr) => kr.progress));
+}
+
+function personalObjectiveAchievement(memberId, key) {
+  const weeklyProgress = latestWeeklyProgress(memberId, key);
+  return weeklyProgress === null ? personalObjectiveKrAchievement(memberId, key) : weeklyProgress;
 }
 
 function memberAchievement(memberId) {
@@ -1437,13 +1454,43 @@ function renderRewardForm(reward) {
   elements.reward95.value = reward.p95 || "";
 }
 
+function setPersonalReviewProgressControl(progress) {
+  if (!elements.personalReviewProgress || !elements.personalReviewProgressValue) return;
+  const value = clampPercent(Number(progress || 0));
+  elements.personalReviewProgress.value = String(value);
+  elements.personalReviewProgress.style.setProperty("--progress", `${value}%`);
+  elements.personalReviewProgressValue.textContent = `${value}%`;
+}
+
 function renderPersonalReviewForm(memberId, selections) {
+  const previousSelection = elements.personalReviewGoal.value;
   elements.personalReviewGoal.innerHTML = selections.length
     ? selections
         .map((key) => `<option value="${escapeHTML(key)}">${escapeHTML(familyKrLabelByKey(key))}</option>`)
         .join("")
     : `<option value="">가져간 목표가 없어요</option>`;
+  if (selections.includes(previousSelection)) {
+    elements.personalReviewGoal.value = previousSelection;
+  }
   elements.personalReviewGoal.disabled = !selections.length;
+  elements.personalReviewProgress.disabled = !selections.length;
+  const selectedKey = elements.personalReviewGoal.value;
+  setPersonalReviewProgressControl(selectedKey ? personalObjectiveAchievement(memberId, selectedKey) : 0);
+}
+
+function renderReviewProgress(progress) {
+  if (!Number.isFinite(progress)) return "";
+  return `
+    <div class="review-progress">
+      <div>
+        <span>달성률</span>
+        <strong>${progress}%</strong>
+      </div>
+      <div class="progress-bar small">
+        <span style="width: ${progress}%"></span>
+      </div>
+    </div>
+  `;
 }
 
 function renderPersonalWeeklyReviews(memberId) {
@@ -1463,7 +1510,8 @@ function renderPersonalWeeklyReviews(memberId) {
             <strong>${escapeHTML(date)}</strong>
             <span>${escapeHTML(familyKrLabelByKey(review.targetKey))}</span>
           </div>
-          <p>${escapeHTML(review.body)}</p>
+          ${renderReviewProgress(review.progress)}
+          <p>${escapeHTML(review.body || "달성률을 체크했어요.")}</p>
           ${review.nextAction ? `<small>다음 행동 · ${escapeHTML(review.nextAction)}</small>` : ""}
         </article>
       `;
@@ -1750,7 +1798,8 @@ function renderWeeklyReviews() {
           </div>
           <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
           ${review.targetKey ? `<small>${escapeHTML(familyKrLabelByKey(review.targetKey))}</small>` : ""}
-          <p>${escapeHTML(review.body)}</p>
+          ${renderReviewProgress(review.progress)}
+          <p>${escapeHTML(review.body || "달성률을 체크했어요.")}</p>
           ${review.nextAction ? `<small>다음 액션 · ${escapeHTML(review.nextAction)}</small>` : ""}
         </article>
       `;
@@ -2270,18 +2319,25 @@ elements.rewardForm.addEventListener("input", () => {
   renderAdminRewards();
 });
 
+elements.personalReviewGoal.addEventListener("change", () => {
+  const member = currentMember();
+  const targetKey = elements.personalReviewGoal.value;
+  setPersonalReviewProgressControl(member && targetKey ? personalObjectiveAchievement(member.id, targetKey) : 0);
+});
+
+elements.personalReviewProgress.addEventListener("input", () => {
+  setPersonalReviewProgressControl(elements.personalReviewProgress.value);
+});
+
 elements.personalWeeklyReviewForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const member = currentMember();
   const targetKey = elements.personalReviewGoal.value;
   const body = elements.personalReviewBody.value.trim();
   const nextAction = elements.personalReviewNextAction.value.trim();
+  const progress = clampPercent(Number(elements.personalReviewProgress.value || 0));
   if (!member || !targetKey) {
     showToast("먼저 내 목표 2개를 가져가세요.");
-    return;
-  }
-  if (!body && !nextAction) {
-    showToast("리뷰나 다음 행동 중 하나는 입력해주세요.");
     return;
   }
 
@@ -2291,16 +2347,21 @@ elements.personalWeeklyReviewForm.addEventListener("submit", (event) => {
     memberId: member.id,
     valueId: "integrity",
     targetKey,
+    progress,
     body,
     nextAction,
   });
   elements.personalReviewBody.value = "";
   elements.personalReviewNextAction.value = "";
+  setPersonalReviewProgressControl(progress);
   saveState();
+  renderPersonalReviewForm(member.id, personalSelections(member.id));
   renderPersonalWeeklyReviews(member.id);
   renderWeeklyReviews();
+  renderCurrentPersonalProgress();
+  renderConnectionMap();
   renderMetrics();
-  showToast("내 주간 리뷰를 저장했어요.");
+  showToast("주간 달성률을 분기 목표에 반영했어요.");
 });
 
 elements.exportButton.addEventListener("click", () => {

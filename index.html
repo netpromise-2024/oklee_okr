@@ -550,6 +550,13 @@
                 연결할 내 목표
                 <select id="personalReviewGoal"></select>
               </label>
+              <div class="kr-progress-control review-progress-control">
+                <div>
+                  <span>이번 주 달성률</span>
+                  <strong id="personalReviewProgressValue">0%</strong>
+                </div>
+                <input id="personalReviewProgress" class="range-input" type="range" min="0" max="100" step="5" value="0" style="--progress: 0%" aria-label="이번 주 달성률" />
+              </div>
               <label>
                 이번 주 리뷰
                 <textarea id="personalReviewBody" rows="4" maxlength="300" placeholder="이번 주에 어떤 행동을 했나요?"></textarea>
