@@ -658,6 +658,18 @@ textarea:focus {
   gap: 8px;
 }
 
+.mobile-stage-guide {
+  display: none;
+}
+
+.mobile-stage-details {
+  display: block;
+}
+
+.mobile-stage-details summary {
+  display: none;
+}
+
 .personal-wizard-status {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(180px, 0.32fr);
@@ -1520,6 +1532,108 @@ textarea:focus {
 
   .workflow-nav {
     position: static;
+  }
+
+  .mobile-stage-guide {
+    display: grid;
+  }
+
+  .mobile-stage-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px;
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--accent);
+    border-radius: var(--radius);
+  }
+
+  .mobile-stage-card.done {
+    background: var(--accent-soft);
+    border-color: rgba(49, 51, 153, 0.24);
+    border-left-color: var(--gold);
+  }
+
+  .mobile-stage-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .mobile-stage-card-head span,
+  .mobile-stage-card-head small {
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    line-height: 1.3;
+  }
+
+  .mobile-stage-card-head small {
+    padding: 4px 8px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .mobile-stage-card strong {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .mobile-stage-card h3 {
+    margin: 0;
+    font-size: 1.12rem;
+    line-height: 1.32;
+  }
+
+  .mobile-stage-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  .mobile-stage-details summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 12px 14px;
+    color: var(--accent);
+    list-style: none;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .mobile-stage-details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-stage-details summary::after {
+    content: "열기";
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  .mobile-stage-details[open] summary::after {
+    content: "닫기";
+  }
+
+  .mobile-stage-details[open] .personal-stage-grid {
+    margin-top: 10px;
+  }
+
+  .mobile-stage-details:not([open]) .personal-stage-grid {
+    display: none;
   }
 
   .personal-wizard-actions {

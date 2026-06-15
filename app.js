@@ -79,6 +79,7 @@ const elements = {
   personalAchievement: document.querySelector("#personalAchievement"),
   personalAchievementBar: document.querySelector("#personalAchievementBar"),
   personalScheduleCaption: document.querySelector("#personalScheduleCaption"),
+  mobileStageGuide: document.querySelector("#mobileStageGuide"),
   personalStageGrid: document.querySelector("#personalStageGrid"),
   personalWizardTitle: document.querySelector("#personalWizardTitle"),
   personalWizardCaption: document.querySelector("#personalWizardCaption"),
@@ -373,6 +374,23 @@ function setupShareNotice() {
   const link = elements.shareNotice.querySelector("a");
   if (link) {
     link.href = SHARED_APP_URL;
+  }
+}
+
+function setupMobileStageDetails() {
+  const details = document.querySelector(".mobile-stage-details");
+  if (!details) return;
+
+  const mediaQuery = window.matchMedia("(max-width: 760px)");
+  const syncDetailsState = () => {
+    details.open = !mediaQuery.matches;
+  };
+
+  syncDetailsState();
+  if (typeof mediaQuery.addEventListener === "function") {
+    mediaQuery.addEventListener("change", syncDetailsState);
+  } else {
+    mediaQuery.addListener(syncDetailsState);
   }
 }
 
@@ -831,6 +849,93 @@ function stageItems() {
   ];
 }
 
+function personalStepGuideItems() {
+  const start = cycleStart();
+  const rewardWish = getRewardWish(currentMemberId);
+  const memberReviews = state.weeklyReviews.filter((review) => review.memberId === currentMemberId).length;
+  const personalResultsDone =
+    personalSelections(currentMemberId).length > 0 &&
+    personalSelections(currentMemberId).every((key) => getPersonalPlan(currentMemberId, key).personalKrs.some((kr) => kr.title.trim()));
+
+  return [
+    {
+      period: `D-15~D-13 · ${formatKoreanDate(addDays(start, -15))}~${formatKoreanDate(addDays(start, -13))}`,
+      detail: "우리 가족이 달성했으면 하는 모습을 한 문장으로 적어보세요.",
+      done: state.objectiveCandidates.some((candidate) => candidate.proposerId === currentMemberId),
+    },
+    {
+      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
+      detail: "마음에 드는 후보에 투표합니다. 여러 명이 공감하는 목표를 찾는 단계예요.",
+      done: state.objectiveCandidates.some((candidate) => candidate.votes.includes(currentMemberId)),
+    },
+    {
+      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
+      detail: "가족 목표 2개를 확정하고, 각 목표가 되었는지 숫자로 확인할 결과를 적습니다.",
+      done: confirmedObjectives().length === OBJECTIVE_LIMIT && filledFamilyKrCount() >= OBJECTIVE_LIMIT * KR_LIMIT,
+    },
+    {
+      period: `D-10 · ${formatKoreanDate(addDays(start, -10))}`,
+      detail: "전체 확인 결과 중에서 내가 맡을 목표 2개를 가져갑니다.",
+      done: personalSelections(currentMemberId).length >= PERSONAL_OBJECTIVE_LIMIT,
+    },
+    {
+      period: `D-7 · ${formatKoreanDate(addDays(start, -7))}`,
+      detail: "내가 가져온 목표마다 확인 결과와 핵심 행동을 3개 이내로 적습니다.",
+      done: personalResultsDone,
+    },
+    {
+      period: `D-7 · ${formatKoreanDate(addDays(start, -7))}`,
+      detail: "가족 목표 달성률에 따라 받고 싶은 선물을 적습니다.",
+      done: Object.values(rewardWish).some(Boolean),
+    },
+    {
+      period: "매주",
+      detail: "이번 주 실행 내용과 다음 행동을 남겨서 기록으로 쌓습니다.",
+      done: memberReviews > 0,
+    },
+  ];
+}
+
+function stageCardsHTML(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="stage-card ${item.done ? "done" : ""}">
+          <span>${escapeHTML(item.period)}</span>
+          <strong>${escapeHTML(item.title)}</strong>
+          <p>${escapeHTML(item.detail)}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderMobileStageGuide() {
+  if (!elements.mobileStageGuide) return;
+  const metas = personalStepMeta();
+  const guides = personalStepGuideItems();
+  const activeIndex = currentPersonalStep - 1;
+  const meta = metas[activeIndex];
+  const guide = guides[activeIndex];
+  if (!meta || !guide) {
+    elements.mobileStageGuide.innerHTML = "";
+    return;
+  }
+
+  const title = meta.title.replace(/^\d+\.\s*/, "");
+  elements.mobileStageGuide.innerHTML = `
+    <article class="mobile-stage-card ${guide.done ? "done" : ""}">
+      <div class="mobile-stage-card-head">
+        <span>${escapeHTML(guide.period)}</span>
+        <small>${guide.done ? "완료" : `${currentPersonalStep}/${PERSONAL_STEP_TOTAL}`}</small>
+      </div>
+      <strong>지금은 ${currentPersonalStep}단계예요</strong>
+      <h3>${escapeHTML(title)}</h3>
+      <p>${escapeHTML(guide.detail || meta.caption)}</p>
+    </article>
+  `;
+}
+
 function getRewardWish(memberId) {
   state.rewardWishes[memberId] ||= { p70: "", p80: "", p90: "", p95: "" };
   return state.rewardWishes[memberId];
@@ -1047,17 +1152,8 @@ function renderPersonalApp() {
     .map((value) => `<option value="${value.id}">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</option>`)
     .join("");
 
-  elements.personalStageGrid.innerHTML = stageItems()
-    .map(
-      (item) => `
-        <article class="stage-card ${item.done ? "done" : ""}">
-          <span>${escapeHTML(item.period)}</span>
-          <strong>${escapeHTML(item.title)}</strong>
-          <p>${escapeHTML(item.detail)}</p>
-        </article>
-      `,
-    )
-    .join("");
+  elements.personalStageGrid.innerHTML = stageCardsHTML(stageItems());
+  renderMobileStageGuide();
 
   renderPersonalRecommendations(member.id);
   renderPersonalVoteBoard(member.id);
@@ -1077,17 +1173,8 @@ function renderCurrentPersonalProgress() {
   const progress = memberAchievement(member.id);
   elements.personalAchievement.textContent = `${progress}%`;
   elements.personalAchievementBar.style.width = `${progress}%`;
-  elements.personalStageGrid.innerHTML = stageItems()
-    .map(
-      (item) => `
-        <article class="stage-card ${item.done ? "done" : ""}">
-          <span>${escapeHTML(item.period)}</span>
-          <strong>${escapeHTML(item.title)}</strong>
-          <p>${escapeHTML(item.detail)}</p>
-        </article>
-      `,
-    )
-    .join("");
+  elements.personalStageGrid.innerHTML = stageCardsHTML(stageItems());
+  renderMobileStageGuide();
 }
 
 function renderCurrentPersonalPlanningPanels() {
@@ -1117,6 +1204,7 @@ function renderPersonalWizard() {
   elements.personalStepCounter.textContent = `${currentPersonalStep}/${PERSONAL_STEP_TOTAL}`;
   elements.personalPrevStep.disabled = currentPersonalStep === 1;
   elements.personalNextStep.textContent = currentPersonalStep === PERSONAL_STEP_TOTAL ? "완료" : "다음";
+  renderMobileStageGuide();
 }
 
 function renderPersonalRecommendations(memberId) {
@@ -2261,5 +2349,6 @@ elements.resetButton.addEventListener("click", () => {
 });
 
 setupShareNotice();
+setupMobileStageDetails();
 render();
 initRemoteSync();
