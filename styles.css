@@ -374,7 +374,7 @@ button:focus-visible {
 .mission-band .mission-emblem {
   object-fit: contain;
   object-position: center;
-  padding: 6px;
+  padding: 2px;
   background: #fffaf0;
 }
 
