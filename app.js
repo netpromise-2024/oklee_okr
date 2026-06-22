@@ -1,6 +1,6 @@
 const STORAGE_KEY = "oklee-family-relationship-v1";
 const SESSION_KEY = "oklee-family-relationship-session-v1";
-const VIEW_KEY = "oklee-family-relationship-view-v1";
+const VIEW_KEY = "oklee-family-relationship-view-v2";
 const SUPABASE_URL = "https://laquzdfgwtxkcuxzvesg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_afRB9ccJ23fNekWd8m3ibA_uZiYUTmo";
 const SUPABASE_STATE_TABLE = "family_relationship_state";
@@ -8,6 +8,22 @@ const SUPABASE_ARCHIVE_TABLE = "family_relationship_cycles";
 const SUPABASE_ROW_ID = "oklee-family-relationship";
 const FAMILY_PASSWORD = "hyeon00#";
 const FEEDBACK_LIMIT = 5;
+const SELF_REFLECTION_LIMIT = 5;
+
+const SELF_REFLECTION_META = {
+  strength: {
+    label: "내가 스스로 잘하고 있다고 생각하는 것",
+    description: "최근 3개월 동안 꾸준히 해왔거나 스스로 대견하게 느끼는 모습을 적어보세요.",
+    placeholder: "예: 바쁜 날에도 가족과 대화할 시간을 만들려고 노력했다.",
+    tone: "positive",
+  },
+  recognition: {
+    label: "가족에게 인정받고 싶은 것",
+    description: "내가 애쓰고 있지만 가족이 아직 잘 모를 수 있는 마음과 행동을 적어보세요.",
+    placeholder: "예: 가족의 생활을 챙기기 위해 보이지 않는 곳에서도 많이 고민하고 있다.",
+    tone: "recognition",
+  },
+};
 
 const CATEGORY_META = {
   strength: {
@@ -42,8 +58,10 @@ const elements = {
   cycleCaption: document.querySelector("#cycleCaption"),
   myFeedbackProgress: document.querySelector("#myFeedbackProgress"),
   myFeedbackProgressBar: document.querySelector("#myFeedbackProgressBar"),
+  selfBadge: document.querySelector("#selfBadge"),
   receivedBadge: document.querySelector("#receivedBadge"),
   commitmentBadge: document.querySelector("#commitmentBadge"),
+  selfReflectionEditor: document.querySelector("#selfReflectionEditor"),
   recipientTabs: document.querySelector("#recipientTabs"),
   feedbackEditor: document.querySelector("#feedbackEditor"),
   receivedSummary: document.querySelector("#receivedSummary"),
@@ -60,7 +78,7 @@ const elements = {
 
 let state = loadState();
 let currentMemberId = localStorage.getItem(SESSION_KEY);
-let currentView = localStorage.getItem(VIEW_KEY) || "write";
+let currentView = localStorage.getItem(VIEW_KEY) || "self";
 let activeRecipientId = null;
 let remoteUpdatedAt = null;
 let remoteSaveTimer = null;
@@ -115,6 +133,7 @@ function seedState(startDate = defaultCycleStartDate()) {
     cycleStartDate: startDate,
     mission: "사회에 기여하는 사람이 되자.",
     members: defaultMembers(),
+    selfReflections: [],
     feedbacks: [],
     commitments: [],
   };
@@ -130,6 +149,9 @@ function normalizeState(candidate) {
     cycleStartDate,
     mission: candidate.mission || "사회에 기여하는 사람이 되자.",
     members: normalizeMembers(candidate.members),
+    selfReflections: Array.isArray(candidate.selfReflections)
+      ? candidate.selfReflections.map((item) => ({ ...normalizeSelfReflection(item), cycleId: item.cycleId || cycleId }))
+      : [],
     feedbacks: candidate.feedbacks.map((feedback) => ({ ...normalizeFeedback(feedback), cycleId: feedback.cycleId || cycleId })),
     commitments: Array.isArray(candidate.commitments)
       ? candidate.commitments.map((commitment) => ({
@@ -147,6 +169,18 @@ function normalizeMembers(members) {
     ...member,
     ...(members.find((item) => item.id === member.id) || {}),
   }));
+}
+
+function normalizeSelfReflection(item) {
+  return {
+    id: item.id || uid(),
+    cycleId: item.cycleId || "",
+    memberId: item.memberId || "father",
+    category: SELF_REFLECTION_META[item.category] ? item.category : "strength",
+    text: item.text || "",
+    createdAt: item.createdAt || new Date().toISOString(),
+    updatedAt: item.updatedAt || item.createdAt || new Date().toISOString(),
+  };
 }
 
 function normalizeFeedback(feedback) {
@@ -349,7 +383,7 @@ function loginMember(loginId, password) {
   }
   currentMemberId = member.id;
   activeRecipientId = state.members.find((item) => item.id !== currentMemberId)?.id || null;
-  currentView = "write";
+  currentView = "self";
   localStorage.setItem(SESSION_KEY, currentMemberId);
   localStorage.setItem(VIEW_KEY, currentView);
   elements.loginForm.reset();
@@ -374,10 +408,14 @@ function ensureSession() {
 }
 
 function setView(view) {
-  if (!["write", "received", "commitments", "overview"].includes(view)) return;
+  if (!["self", "write", "received", "commitments", "overview"].includes(view)) return;
   currentView = view;
   localStorage.setItem(VIEW_KEY, currentView);
   renderViewVisibility();
+}
+
+function currentSelfReflections(memberId = currentMemberId) {
+  return state.selfReflections.filter((item) => item.cycleId === state.cycleId && item.memberId === memberId);
 }
 
 function currentFeedbacks() {
@@ -404,13 +442,17 @@ function feedbackCount(authorId, recipientId, category) {
 
 function feedbackProgress(memberId) {
   const recipients = state.members.filter((member) => member.id !== memberId);
+  const selfCompleted = Object.keys(SELF_REFLECTION_META).filter((category) =>
+    currentSelfReflections(memberId).some((item) => item.category === category),
+  ).length;
   const completedSlots = recipients.reduce(
     (total, recipient) =>
       total +
       Object.keys(CATEGORY_META).filter((category) => feedbackCount(memberId, recipient.id, category) > 0).length,
     0,
   );
-  return Math.round((completedSlots / (recipients.length * Object.keys(CATEGORY_META).length)) * 100);
+  const totalSlots = recipients.length * Object.keys(CATEGORY_META).length + Object.keys(SELF_REFLECTION_META).length;
+  return Math.round(((completedSlots + selfCompleted) / totalSlots) * 100);
 }
 
 function averageCommitmentProgress(memberId) {
@@ -432,17 +474,20 @@ function render() {
 
   const member = currentMember();
   const progress = feedbackProgress(member.id);
+  const selfReflections = currentSelfReflections(member.id);
   const received = receivedFeedbacks(member.id);
   const commitments = activeCommitments(member.id);
   elements.pageTitle.textContent = `${member.role} ${member.name}의 관계 점검`;
   elements.cycleCaption.textContent = `${state.cycleName} · ${formatCyclePeriod()}`;
   elements.myFeedbackProgress.textContent = `${progress}%`;
   elements.myFeedbackProgressBar.style.width = `${progress}%`;
+  elements.selfBadge.textContent = selfReflections.length;
   elements.receivedBadge.textContent = received.length;
   elements.commitmentBadge.textContent = commitments.length;
   elements.cycleActions.hidden = !isParent(member.id);
 
   renderViewVisibility();
+  renderSelfReflections();
   renderRecipientTabs();
   renderFeedbackEditor();
   renderReceived();
@@ -458,6 +503,49 @@ function renderViewVisibility() {
   document.querySelectorAll("[data-view-panel]").forEach((panel) => {
     panel.hidden = panel.dataset.viewPanel !== currentView;
   });
+}
+
+function renderSelfReflections() {
+  elements.selfReflectionEditor.innerHTML = Object.entries(SELF_REFLECTION_META)
+    .map(([category, meta]) => {
+      const items = currentSelfReflections()
+        .filter((item) => item.category === category)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      return `
+        <section class="self-reflection-column" data-tone="${meta.tone}">
+          <div class="self-reflection-heading">
+            <div>
+              <span>나에게 묻기</span>
+              <h3>${escapeHTML(meta.label)}</h3>
+            </div>
+            <strong>${items.length}/${SELF_REFLECTION_LIMIT}</strong>
+          </div>
+          <p>${escapeHTML(meta.description)}</p>
+          <form class="self-reflection-form" data-category="${category}">
+            <textarea rows="3" maxlength="200" placeholder="${escapeHTML(meta.placeholder)}" ${items.length >= SELF_REFLECTION_LIMIT ? "disabled" : ""} required></textarea>
+            <button class="primary-button" type="submit" ${items.length >= SELF_REFLECTION_LIMIT ? "disabled" : ""}>나의 이야기 추가</button>
+          </form>
+          <div class="self-reflection-list">
+            ${
+              items.length
+                ? items
+                    .map(
+                      (item, index) => `
+                        <article class="self-reflection-item">
+                          <span>${index + 1}</span>
+                          <p>${escapeHTML(item.text)}</p>
+                          <button class="icon-text-button delete-self-reflection" type="button" data-self-reflection-id="${item.id}" aria-label="나의 이야기 삭제">삭제</button>
+                        </article>
+                      `,
+                    )
+                    .join("")
+                : emptyState("아직 적은 내용이 없어요", "나를 따뜻하게 바라보는 한 문장부터 시작해보세요.")
+            }
+          </div>
+        </section>
+      `;
+    })
+    .join("");
 }
 
 function renderRecipientTabs() {
@@ -652,6 +740,7 @@ function renderCommitments() {
 function renderFamilyOverview() {
   elements.familyOverview.innerHTML = state.members
     .map((member) => {
+      const selfReflectionCount = currentSelfReflections(member.id).length;
       const given = feedbacksByAuthor(member.id).length;
       const progress = feedbackProgress(member.id);
       const commitments = activeCommitments(member.id);
@@ -667,6 +756,7 @@ function renderFamilyOverview() {
           </div>
           <div class="progress-track"><span style="width: ${progress}%"></span></div>
           <dl>
+            <div><dt>나의 이야기</dt><dd>${selfReflectionCount}개</dd></div>
             <div><dt>작성한 이야기</dt><dd>${given}개</dd></div>
             <div><dt>선택한 실천</dt><dd>${commitments.length}개</dd></div>
             <div><dt>실천 진행률</dt><dd>${practiceProgress}%</dd></div>
@@ -688,13 +778,14 @@ function renderArchives() {
   elements.archiveList.innerHTML = archives
     .map((archive) => {
       const archivedState = normalizeState(archive.data);
+      const selfReflectionCount = archivedState.selfReflections.length;
       const feedbackCount = archivedState.feedbacks.length;
       const commitmentCount = archivedState.commitments.length;
       return `
         <article class="archive-card">
           <div>
             <h4>${escapeHTML(archive.cycle_name)}</h4>
-            <p>가족 이야기 ${feedbackCount}개 · 3개월 실천 ${commitmentCount}개</p>
+            <p>나의 이야기 ${selfReflectionCount}개 · 가족 이야기 ${feedbackCount}개 · 3개월 실천 ${commitmentCount}개</p>
             <span>${escapeHTML(formatDateTime(archive.archived_at))} 보관</span>
           </div>
           <button class="secondary-button download-archive" type="button" data-archive-id="${archive.id}">기록 받기</button>
@@ -702,6 +793,36 @@ function renderArchives() {
       `;
     })
     .join("");
+}
+
+function addSelfReflection(category, text) {
+  const items = currentSelfReflections().filter((item) => item.category === category);
+  if (items.length >= SELF_REFLECTION_LIMIT) {
+    showToast("항목별로 5개까지 작성할 수 있어요.");
+    return;
+  }
+  const now = new Date().toISOString();
+  state.selfReflections.push({
+    id: uid(),
+    cycleId: state.cycleId,
+    memberId: currentMemberId,
+    category,
+    text: text.trim(),
+    createdAt: now,
+    updatedAt: now,
+  });
+  saveState();
+  render();
+  showToast("나의 이야기를 저장했어요.");
+}
+
+function deleteSelfReflection(itemId) {
+  const item = state.selfReflections.find((entry) => entry.id === itemId);
+  if (!item || item.memberId !== currentMemberId) return;
+  state.selfReflections = state.selfReflections.filter((entry) => entry.id !== itemId);
+  saveState();
+  render();
+  showToast("나의 이야기를 삭제했어요.");
 }
 
 function addFeedback(category, text) {
@@ -912,6 +1033,12 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const deleteSelfButton = event.target.closest(".delete-self-reflection");
+  if (deleteSelfButton) {
+    deleteSelfReflection(deleteSelfButton.dataset.selfReflectionId);
+    return;
+  }
+
   const removeCommitmentButton = event.target.closest(".remove-commitment");
   if (removeCommitmentButton) {
     const commitment = state.commitments.find((item) => item.id === removeCommitmentButton.dataset.commitmentId);
@@ -935,6 +1062,16 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("submit", (event) => {
+  const selfForm = event.target.closest(".self-reflection-form");
+  if (selfForm) {
+    event.preventDefault();
+    const textarea = selfForm.querySelector("textarea");
+    const text = textarea.value.trim();
+    if (!text) return;
+    addSelfReflection(selfForm.dataset.category, text);
+    return;
+  }
+
   const form = event.target.closest(".feedback-form");
   if (!form) return;
   event.preventDefault();
