@@ -75,32 +75,38 @@ dd {
   display: grid;
   min-height: 100vh;
   place-items: center;
-  padding: 24px;
+  padding: 28px;
+  background: #edf0ee;
 }
 
 .login-panel {
   display: grid;
-  width: min(940px, 100%);
-  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
-  gap: 22px 28px;
-  padding: 32px;
+  width: min(1080px, 100%);
+  min-height: min(680px, calc(100vh - 56px));
+  grid-template-columns: minmax(300px, 0.92fr) minmax(360px, 1.08fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-left: 10px solid var(--navy);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 
 .login-copy {
   display: grid;
+  grid-column: 2;
+  grid-row: 1;
   align-content: center;
   gap: 14px;
+  padding: 42px 42px 24px;
 }
 
 .login-copy h1 {
   max-width: 620px;
   color: var(--navy);
-  font-size: 2.45rem;
+  font-size: 2.65rem;
   line-height: 1.18;
   word-break: keep-all;
 }
@@ -122,33 +128,47 @@ dd {
 }
 
 .login-photo {
+  position: relative;
   grid-row: 1 / span 2;
-  grid-column: 2;
-  display: grid;
-  align-content: center;
-  gap: 8px;
+  grid-column: 1;
+  min-height: 680px;
+  overflow: hidden;
 }
 
 .login-photo img {
   display: block;
   width: 100%;
-  height: 280px;
+  height: 100%;
+  min-height: 680px;
   object-fit: cover;
-  border: 1px solid var(--line);
+  object-position: center center;
 }
 
 .login-photo figcaption {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 850;
-  text-align: right;
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 3px;
+  padding: 46px 24px 22px;
+  color: #ffffff;
+  background: linear-gradient(to top, rgba(17, 21, 28, 0.76), transparent);
+}
+
+.login-photo figcaption strong {
+  font-size: 1rem;
+}
+
+.login-photo figcaption span {
+  font-size: 0.75rem;
+  font-weight: 750;
 }
 
 .login-form {
   display: grid;
-  grid-column: 1;
+  grid-column: 2;
+  grid-row: 2;
   gap: 12px;
-  max-width: 520px;
+  padding: 0 42px 42px;
 }
 
 label {
@@ -347,6 +367,7 @@ button:focus-visible {
   width: 100%;
   height: 120px;
   object-fit: cover;
+  object-position: 50% 76%;
   border: 1px solid var(--line);
 }
 
@@ -1257,12 +1278,19 @@ input[type="range"]::-webkit-slider-thumb {
 
 @media (max-width: 760px) {
   .login-shell {
-    padding: 12px;
+    padding: 10px;
   }
 
   .login-panel {
     grid-template-columns: 1fr;
-    padding: 22px 18px;
+    grid-template-rows: 260px auto auto;
+    min-height: 0;
+  }
+
+  .login-copy {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 24px 20px 18px;
   }
 
   .login-copy h1 {
@@ -1271,11 +1299,24 @@ input[type="range"]::-webkit-slider-thumb {
 
   .login-photo {
     grid-column: 1;
-    grid-row: auto;
+    grid-row: 1;
+    min-height: 260px;
   }
 
   .login-photo img {
-    height: 190px;
+    height: 260px;
+    min-height: 260px;
+    object-position: 50% 64%;
+  }
+
+  .login-photo figcaption {
+    padding: 38px 18px 14px;
+  }
+
+  .login-form {
+    grid-column: 1;
+    grid-row: 3;
+    padding: 0 20px 24px;
   }
 
   .app-shell {
