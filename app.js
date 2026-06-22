@@ -63,6 +63,7 @@ const elements = {
   commitmentBadge: document.querySelector("#commitmentBadge"),
   selfReflectionEditor: document.querySelector("#selfReflectionEditor"),
   recipientTabs: document.querySelector("#recipientTabs"),
+  recipientSelfContext: document.querySelector("#recipientSelfContext"),
   feedbackEditor: document.querySelector("#feedbackEditor"),
   receivedSummary: document.querySelector("#receivedSummary"),
   receivedList: document.querySelector("#receivedList"),
@@ -489,6 +490,7 @@ function render() {
   renderViewVisibility();
   renderSelfReflections();
   renderRecipientTabs();
+  renderRecipientSelfContext();
   renderFeedbackEditor();
   renderReceived();
   renderCommitments();
@@ -564,6 +566,39 @@ function renderRecipientTabs() {
       `;
     })
     .join("");
+}
+
+function renderRecipientSelfContext() {
+  const recipient = memberById(activeRecipientId);
+  const items = currentSelfReflections(recipient.id);
+
+  elements.recipientSelfContext.innerHTML = `
+    <div class="recipient-self-context-heading">
+      <div>
+        <p class="eyebrow">Before Feedback</p>
+        <h3>${escapeHTML(recipient.name)}님이 먼저 들려준 자기 이야기</h3>
+      </div>
+      <span>${items.length}개</span>
+    </div>
+    <p class="recipient-self-context-guide">상대가 스스로 바라보는 모습과 인정받고 싶은 마음을 먼저 읽고 피드백을 작성해보세요.</p>
+    <div class="recipient-self-context-grid">
+      ${Object.entries(SELF_REFLECTION_META)
+        .map(([category, meta]) => {
+          const categoryItems = items.filter((item) => item.category === category);
+          return `
+            <section class="recipient-self-context-group" data-tone="${meta.tone}">
+              <h4>${escapeHTML(meta.label)}</h4>
+              ${
+                categoryItems.length
+                  ? `<ul>${categoryItems.map((item) => `<li>${escapeHTML(item.text)}</li>`).join("")}</ul>`
+                  : `<p>아직 작성한 내용이 없어요.</p>`
+              }
+            </section>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
 }
 
 function renderFeedbackEditor() {
@@ -1023,6 +1058,7 @@ document.addEventListener("click", (event) => {
   if (recipientButton) {
     activeRecipientId = recipientButton.dataset.recipientId;
     renderRecipientTabs();
+    renderRecipientSelfContext();
     renderFeedbackEditor();
     return;
   }
