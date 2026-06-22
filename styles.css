@@ -646,6 +646,87 @@ button:focus-visible {
   font-size: 0.91rem;
 }
 
+.recipient-self-context {
+  display: grid;
+  gap: 10px;
+  padding: 15px;
+  background: var(--blue-soft);
+  border: 1px solid #cdd5e7;
+  border-left: 5px solid var(--navy);
+  border-radius: var(--radius);
+}
+
+.recipient-self-context-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recipient-self-context-heading h3 {
+  margin-top: 3px;
+  font-size: 1rem;
+}
+
+.recipient-self-context-heading > span {
+  color: var(--navy);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.recipient-self-context-guide {
+  color: #59647e;
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.recipient-self-context-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.recipient-self-context-group {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid #d4daea;
+  border-top: 4px solid var(--green);
+  border-radius: var(--radius);
+}
+
+.recipient-self-context-group[data-tone="recognition"] {
+  border-top-color: var(--navy);
+}
+
+.recipient-self-context-group h4 {
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.recipient-self-context-group ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.recipient-self-context-group li {
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.recipient-self-context-group > p {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
 .feedback-editor {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1281,6 +1362,10 @@ input[type="range"]::-webkit-slider-thumb {
   .received-summary,
   .received-card-grid,
   .family-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .recipient-self-context-grid {
     grid-template-columns: 1fr;
   }
 
