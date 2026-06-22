@@ -371,6 +371,13 @@ button:focus-visible {
   border: 1px solid var(--line);
 }
 
+.mission-band .mission-emblem {
+  object-fit: contain;
+  object-position: center;
+  padding: 6px;
+  background: #fffaf0;
+}
+
 .my-progress {
   display: grid;
   align-content: center;
