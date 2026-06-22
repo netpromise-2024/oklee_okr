@@ -1,161 +1,100 @@
-const STORAGE_KEY = "family-okr-workflow-v2";
-const SESSION_KEY = "family-okr-session-v1";
-const VIEW_KEY = "family-okr-view-v1";
-const PERSONAL_STEP_KEY = "family-okr-personal-step-v1";
+const STORAGE_KEY = "oklee-family-relationship-v1";
+const SESSION_KEY = "oklee-family-relationship-session-v1";
+const VIEW_KEY = "oklee-family-relationship-view-v1";
 const SUPABASE_URL = "https://laquzdfgwtxkcuxzvesg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_afRB9ccJ23fNekWd8m3ibA_uZiYUTmo";
-const SUPABASE_TABLE = "family_okr_state";
-const SUPABASE_ROW_ID = "oklee-family-okr";
-const SHARED_APP_URL = "https://oklee-okr.onrender.com";
-const OBJECTIVE_LIMIT = 2;
-const PERSONAL_OBJECTIVE_LIMIT = 2;
-const KR_LIMIT = 3;
-const INITIATIVE_LIMIT = 3;
-const PERSONAL_STEP_TOTAL = 7;
+const SUPABASE_STATE_TABLE = "family_relationship_state";
+const SUPABASE_ARCHIVE_TABLE = "family_relationship_cycles";
+const SUPABASE_ROW_ID = "oklee-family-relationship";
 const FAMILY_PASSWORD = "hyeon00#";
+const FEEDBACK_LIMIT = 5;
+
+const CATEGORY_META = {
+  strength: {
+    label: "잘하고 있는 것",
+    shortLabel: "잘하고 있어요",
+    description: "고맙거나 자랑스럽게 느낀 행동과 모습을 알려주세요.",
+    tone: "positive",
+  },
+  improve: {
+    label: "개선해줬으면 하는 것",
+    shortLabel: "바라는 변화",
+    description: "비난보다 구체적인 행동과 바라는 모습을 적어주세요.",
+    tone: "improve",
+  },
+  challenge: {
+    label: "도전해줬으면 하는 것",
+    shortLabel: "새로운 도전",
+    description: "그 사람이 한 걸음 더 성장할 수 있는 제안을 적어주세요.",
+    tone: "challenge",
+  },
+};
 
 const elements = {
   loginShell: document.querySelector("#loginShell"),
   loginForm: document.querySelector("#loginForm"),
   loginId: document.querySelector("#loginId"),
   loginPassword: document.querySelector("#loginPassword"),
-  adminShell: document.querySelector("#adminShell"),
-  personalShell: document.querySelector("#personalShell"),
-  cycleName: document.querySelector("#cycleName"),
-  cycleStartDate: document.querySelector("#cycleStartDate"),
-  missionText: document.querySelector("#missionText"),
-  valuesGrid: document.querySelector("#valuesGrid"),
-  confirmedObjectiveCount: document.querySelector("#confirmedObjectiveCount"),
-  familyKrCount: document.querySelector("#familyKrCount"),
-  personalObjectiveCount: document.querySelector("#personalObjectiveCount"),
-  personalPlanCount: document.querySelector("#personalPlanCount"),
-  overallAchievementProgress: document.querySelector("#overallAchievementProgress"),
-  overallAchievementBar: document.querySelector("#overallAchievementBar"),
-  achievementCaption: document.querySelector("#achievementCaption"),
-  memberAchievementGrid: document.querySelector("#memberAchievementGrid"),
-  overallSetupProgress: document.querySelector("#overallSetupProgress"),
-  overallSetupBar: document.querySelector("#overallSetupBar"),
-  stepProgressGrid: document.querySelector("#stepProgressGrid"),
-  proposalMemberTabs: document.querySelector("#proposalMemberTabs"),
-  personalMemberTabs: document.querySelector("#personalMemberTabs"),
-  proposalForm: document.querySelector("#proposalForm"),
-  proposalTitle: document.querySelector("#proposalTitle"),
-  proposalValue: document.querySelector("#proposalValue"),
-  proposalNote: document.querySelector("#proposalNote"),
-  recommendTitle: document.querySelector("#recommendTitle"),
-  loadRecommendations: document.querySelector("#loadRecommendations"),
-  recommendList: document.querySelector("#recommendList"),
-  voteStatus: document.querySelector("#voteStatus"),
-  confirmObjectives: document.querySelector("#confirmObjectives"),
-  candidateGrid: document.querySelector("#candidateGrid"),
-  familyKrBoard: document.querySelector("#familyKrBoard"),
-  krPoolStatus: document.querySelector("#krPoolStatus"),
-  krPool: document.querySelector("#krPool"),
-  pickedTitle: document.querySelector("#pickedTitle"),
-  pickedStatus: document.querySelector("#pickedStatus"),
-  pickedList: document.querySelector("#pickedList"),
-  personalBuilder: document.querySelector("#personalBuilder"),
-  adminRewardBoard: document.querySelector("#adminRewardBoard"),
-  weeklyReviewForm: document.querySelector("#weeklyReviewForm"),
-  reviewMember: document.querySelector("#reviewMember"),
-  reviewValue: document.querySelector("#reviewValue"),
-  reviewBody: document.querySelector("#reviewBody"),
-  reviewNextAction: document.querySelector("#reviewNextAction"),
-  weeklyReviewList: document.querySelector("#weeklyReviewList"),
-  connectionMap: document.querySelector("#connectionMap"),
-  exportButton: document.querySelector("#exportButton"),
-  importInput: document.querySelector("#importInput"),
-  resetButton: document.querySelector("#resetButton"),
+  appShell: document.querySelector("#appShell"),
+  pageTitle: document.querySelector("#pageTitle"),
   syncStatus: document.querySelector("#syncStatus"),
-  personalSyncStatus: document.querySelector("#personalSyncStatus"),
-  showPersonalView: document.querySelector("#showPersonalView"),
-  showAdminView: document.querySelector("#showAdminView"),
-  adminLogoutButton: document.querySelector("#adminLogoutButton"),
-  personalLogoutButton: document.querySelector("#personalLogoutButton"),
-  personalEyebrow: document.querySelector("#personalEyebrow"),
-  personalTitle: document.querySelector("#personalTitle"),
-  personalCycleName: document.querySelector("#personalCycleName"),
-  personalMission: document.querySelector("#personalMission"),
-  personalAchievement: document.querySelector("#personalAchievement"),
-  personalAchievementBar: document.querySelector("#personalAchievementBar"),
-  personalScheduleCaption: document.querySelector("#personalScheduleCaption"),
-  mobileStageGuide: document.querySelector("#mobileStageGuide"),
-  personalStageGrid: document.querySelector("#personalStageGrid"),
-  personalWizardTitle: document.querySelector("#personalWizardTitle"),
-  personalWizardCaption: document.querySelector("#personalWizardCaption"),
-  personalWizardProgress: document.querySelector("#personalWizardProgress"),
-  personalWizardBar: document.querySelector("#personalWizardBar"),
-  personalPrevStep: document.querySelector("#personalPrevStep"),
-  personalNextStep: document.querySelector("#personalNextStep"),
-  personalStepCounter: document.querySelector("#personalStepCounter"),
-  personalProposalForm: document.querySelector("#personalProposalForm"),
-  personalProposalTitle: document.querySelector("#personalProposalTitle"),
-  personalProposalValue: document.querySelector("#personalProposalValue"),
-  personalProposalNote: document.querySelector("#personalProposalNote"),
-  personalLoadRecommendations: document.querySelector("#personalLoadRecommendations"),
-  personalRecommendList: document.querySelector("#personalRecommendList"),
-  personalVoteBoard: document.querySelector("#personalVoteBoard"),
-  personalConfirmedGoals: document.querySelector("#personalConfirmedGoals"),
-  personalFamilyResultBoard: document.querySelector("#personalFamilyResultBoard"),
-  personalPoolStatus: document.querySelector("#personalPoolStatus"),
-  personalPickPool: document.querySelector("#personalPickPool"),
-  personalPickedStatus: document.querySelector("#personalPickedStatus"),
-  personalPickedGoals: document.querySelector("#personalPickedGoals"),
-  personalPlanBoard: document.querySelector("#personalPlanBoard"),
-  rewardForm: document.querySelector("#rewardForm"),
-  reward70: document.querySelector("#reward70"),
-  reward80: document.querySelector("#reward80"),
-  reward90: document.querySelector("#reward90"),
-  reward95: document.querySelector("#reward95"),
-  personalWeeklyReviewForm: document.querySelector("#personalWeeklyReviewForm"),
-  personalReviewGoal: document.querySelector("#personalReviewGoal"),
-  personalReviewProgress: document.querySelector("#personalReviewProgress"),
-  personalReviewProgressValue: document.querySelector("#personalReviewProgressValue"),
-  personalReviewBody: document.querySelector("#personalReviewBody"),
-  personalReviewNextAction: document.querySelector("#personalReviewNextAction"),
-  personalWeeklyReviewList: document.querySelector("#personalWeeklyReviewList"),
-  shareNotice: document.querySelector("#shareNotice"),
+  logoutButton: document.querySelector("#logoutButton"),
+  cycleCaption: document.querySelector("#cycleCaption"),
+  myFeedbackProgress: document.querySelector("#myFeedbackProgress"),
+  myFeedbackProgressBar: document.querySelector("#myFeedbackProgressBar"),
+  receivedBadge: document.querySelector("#receivedBadge"),
+  commitmentBadge: document.querySelector("#commitmentBadge"),
+  recipientTabs: document.querySelector("#recipientTabs"),
+  feedbackEditor: document.querySelector("#feedbackEditor"),
+  receivedSummary: document.querySelector("#receivedSummary"),
+  receivedList: document.querySelector("#receivedList"),
+  commitmentOverview: document.querySelector("#commitmentOverview"),
+  commitmentList: document.querySelector("#commitmentList"),
+  cycleActions: document.querySelector("#cycleActions"),
+  archiveCycleButton: document.querySelector("#archiveCycleButton"),
+  startNextCycleButton: document.querySelector("#startNextCycleButton"),
+  familyOverview: document.querySelector("#familyOverview"),
+  archiveList: document.querySelector("#archiveList"),
   toast: document.querySelector("#toast"),
 };
 
 let state = loadState();
-let activeProposalMemberId = state.members[0].id;
-let activePersonalMemberId = state.members[0].id;
-let currentMemberId = loadSessionMemberId();
-let currentView = localStorage.getItem(VIEW_KEY) || "personal";
-let currentPersonalStep = clampPersonalStep(Number(localStorage.getItem(PERSONAL_STEP_KEY) || 1));
-let visibleRecommendationMemberId = null;
-let editingCandidateId = null;
-let toastTimer;
+let currentMemberId = localStorage.getItem(SESSION_KEY);
+let currentView = localStorage.getItem(VIEW_KEY) || "write";
+let activeRecipientId = null;
 let remoteUpdatedAt = null;
-let remoteSaveTimer;
+let remoteSaveTimer = null;
 let remoteSaving = false;
 let applyingRemoteState = false;
-let quietSavePending = false;
+let archives = [];
+let toastTimer = null;
 
 function uid() {
-  if (window.crypto?.randomUUID) {
-    return window.crypto.randomUUID();
-  }
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function currentQuarterLabel(date = new Date()) {
-  return `${date.getFullYear()}년 ${Math.floor(date.getMonth() / 3) + 1}분기 OK&Lee Family Goals`;
 }
 
 function formatDateInput(date) {
   return date.toISOString().slice(0, 10);
 }
 
-function nextQuarterStartDate(date = new Date()) {
-  const currentQuarterStartMonth = Math.floor(date.getMonth() / 3) * 3;
-  const nextQuarterStartMonth = currentQuarterStartMonth + 3;
-  return new Date(date.getFullYear(), nextQuarterStartMonth, 1);
+function addMonths(date, months) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
 }
 
 function defaultCycleStartDate() {
-  return formatDateInput(nextQuarterStartDate());
+  return formatDateInput(new Date());
+}
+
+function cycleNameFromDate(value) {
+  const date = new Date(`${value}T00:00:00`);
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 관계 점검`;
+}
+
+function cycleIdFromDate(value) {
+  return `relationship-${value}`;
 }
 
 function defaultMembers() {
@@ -163,74 +102,85 @@ function defaultMembers() {
     { id: "father", role: "아빠", name: "옥호성", loginId: "netpromise" },
     { id: "mother", role: "엄마", name: "이건화", loginId: "kuna00" },
     { id: "son1", role: "큰아들", name: "옥승현", loginId: "hyeon1" },
-    { id: "son2", role: "둘째아들", name: "옥수현", loginId: "hyeon2" },
+    { id: "son2", role: "작은아들", name: "옥수현", loginId: "hyeon2" },
     { id: "son3", role: "셋째아들", name: "옥서현", loginId: "hyeon3" },
-    { id: "daughter1", role: "넷째딸", name: "옥소현", loginId: "hyeon4" },
+    { id: "daughter1", role: "막내딸", name: "옥소현", loginId: "hyeon4" },
   ];
 }
 
-function defaultValues() {
-  return [
-    {
-      id: "benevolence",
-      han: "仁",
-      ko: "인",
-      title: "어진 마음",
-      description: "실수를 이해하고 보듬어준다.",
-    },
-    {
-      id: "righteousness",
-      han: "義",
-      ko: "의",
-      title: "옳은 용기",
-      description: "나쁜 일을 피하지 않고 돕는다.",
-    },
-    {
-      id: "propriety",
-      han: "禮",
-      ko: "예",
-      title: "상대 배려",
-      description: "상대의 마음을 생각하고 행동한다.",
-    },
-    {
-      id: "wisdom",
-      han: "智",
-      ko: "지",
-      title: "생각의 성장",
-      description: "행동 전에 생각하고 생각하는 힘을 키운다.",
-    },
-    {
-      id: "integrity",
-      han: "信",
-      ko: "신",
-      title: "진실과 감사",
-      description: "진실하게 말하고 감사하는 마음을 갖는다.",
-    },
-  ];
-}
-
-function seedState() {
+function seedState(startDate = defaultCycleStartDate()) {
   return {
-    cycleName: currentQuarterLabel(),
-    cycleStartDate: defaultCycleStartDate(),
+    cycleId: cycleIdFromDate(startDate),
+    cycleName: cycleNameFromDate(startDate),
+    cycleStartDate: startDate,
     mission: "사회에 기여하는 사람이 되자.",
-    values: defaultValues(),
     members: defaultMembers(),
-    objectiveCandidates: [],
-    confirmedObjectiveIds: [],
-    personalSelections: {},
-    personalPlans: {},
-    rewardWishes: {},
-    weeklyReviews: [],
+    feedbacks: [],
+    commitments: [],
+  };
+}
+
+function normalizeState(candidate) {
+  if (!candidate || !Array.isArray(candidate.feedbacks)) return seedState();
+  const cycleStartDate = candidate.cycleStartDate || defaultCycleStartDate();
+  const cycleId = candidate.cycleId || cycleIdFromDate(cycleStartDate);
+  return {
+    cycleId,
+    cycleName: candidate.cycleName || cycleNameFromDate(cycleStartDate),
+    cycleStartDate,
+    mission: candidate.mission || "사회에 기여하는 사람이 되자.",
+    members: normalizeMembers(candidate.members),
+    feedbacks: candidate.feedbacks.map((feedback) => ({ ...normalizeFeedback(feedback), cycleId: feedback.cycleId || cycleId })),
+    commitments: Array.isArray(candidate.commitments)
+      ? candidate.commitments.map((commitment) => ({
+          ...normalizeCommitment(commitment),
+          cycleId: commitment.cycleId || cycleId,
+        }))
+      : [],
+  };
+}
+
+function normalizeMembers(members) {
+  const defaults = defaultMembers();
+  if (!Array.isArray(members)) return defaults;
+  return defaults.map((member) => ({
+    ...member,
+    ...(members.find((item) => item.id === member.id) || {}),
+  }));
+}
+
+function normalizeFeedback(feedback) {
+  return {
+    id: feedback.id || uid(),
+    cycleId: feedback.cycleId || "",
+    authorId: feedback.authorId || "father",
+    recipientId: feedback.recipientId || "mother",
+    category: CATEGORY_META[feedback.category] ? feedback.category : "strength",
+    text: feedback.text || "",
+    createdAt: feedback.createdAt || new Date().toISOString(),
+    updatedAt: feedback.updatedAt || feedback.createdAt || new Date().toISOString(),
+  };
+}
+
+function normalizeCommitment(commitment) {
+  return {
+    id: commitment.id || uid(),
+    cycleId: commitment.cycleId || "",
+    memberId: commitment.memberId || "father",
+    sourceFeedbackId: commitment.sourceFeedbackId || "",
+    authorId: commitment.authorId || "",
+    category: commitment.category === "challenge" ? "challenge" : "improve",
+    text: commitment.text || "",
+    plan: commitment.plan || "",
+    progress: clampPercent(Number(commitment.progress || 0)),
+    createdAt: commitment.createdAt || new Date().toISOString(),
+    updatedAt: commitment.updatedAt || commitment.createdAt || new Date().toISOString(),
   };
 }
 
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) {
-    return seedState();
-  }
-
+  if (!saved) return seedState();
   try {
     return normalizeState(JSON.parse(saved));
   } catch {
@@ -238,169 +188,13 @@ function loadState() {
   }
 }
 
-function normalizeState(candidateState) {
-  if (!candidateState || !Array.isArray(candidateState.objectiveCandidates)) {
-    return seedState();
-  }
-  return {
-    cycleName: candidateState.cycleName || currentQuarterLabel(),
-    cycleStartDate: candidateState.cycleStartDate || defaultCycleStartDate(),
-    mission: candidateState.mission || "사회에 기여하는 사람이 되자.",
-    values: normalizeValues(candidateState.values),
-    members: normalizeMembers(candidateState.members),
-    objectiveCandidates: candidateState.objectiveCandidates.map(normalizeCandidate),
-    confirmedObjectiveIds: Array.isArray(candidateState.confirmedObjectiveIds) ? candidateState.confirmedObjectiveIds : [],
-    personalSelections:
-      candidateState.personalSelections && typeof candidateState.personalSelections === "object"
-        ? candidateState.personalSelections
-        : {},
-    personalPlans:
-      candidateState.personalPlans && typeof candidateState.personalPlans === "object" ? candidateState.personalPlans : {},
-    rewardWishes:
-      candidateState.rewardWishes && typeof candidateState.rewardWishes === "object"
-        ? normalizeRewardWishes(candidateState.rewardWishes)
-        : {},
-    weeklyReviews: Array.isArray(candidateState.weeklyReviews) ? candidateState.weeklyReviews.map(normalizeWeeklyReview) : [],
-  };
-}
-
-function normalizeRewardWishes(rewardWishes) {
-  return Object.fromEntries(
-    Object.entries(rewardWishes).map(([memberId, wish]) => [
-      memberId,
-      {
-        p70: wish?.p70 || "",
-        p80: wish?.p80 || "",
-        p90: wish?.p90 || "",
-        p95: wish?.p95 || "",
-      },
-    ]),
-  );
-}
-
-function normalizeWeeklyReview(review) {
-  const progress =
-    review.progress === null || review.progress === undefined || review.progress === "" ? null : Number(review.progress);
-  return {
-    id: review.id || uid(),
-    createdAt: review.createdAt || new Date().toISOString(),
-    memberId: review.memberId || "father",
-    valueId: review.valueId || "benevolence",
-    targetKey: review.targetKey || "",
-    progress: Number.isFinite(progress) ? clampPercent(progress) : null,
-    body: review.body || "",
-    nextAction: review.nextAction || "",
-  };
-}
-
-function normalizeValues(values) {
-  const defaults = defaultValues();
-  if (!Array.isArray(values)) {
-    return defaults;
-  }
-  return defaults.map((value) => ({
-    ...value,
-    ...(values.find((item) => item.id === value.id) || {}),
-  }));
-}
-
-function normalizeMembers(members) {
-  const defaults = defaultMembers();
-  if (!Array.isArray(members)) {
-    return defaults;
-  }
-  return defaults.map((member) => ({
-    ...member,
-    ...(members.find((item) => item.id === member.id) || {}),
-  }));
-}
-
-function normalizeCandidate(candidate) {
-  return {
-    id: candidate.id || uid(),
-    proposerId: candidate.proposerId || "father",
-    title: candidate.title || "",
-    valueId: candidate.valueId || "benevolence",
-    note: candidate.note || "",
-    votes: Array.isArray(candidate.votes) ? candidate.votes : [],
-    familyKrs: normalizeFamilyKrs(candidate.familyKrs),
-  };
-}
-
-function normalizeFamilyKrs(krs) {
-  const existing = Array.isArray(krs) ? krs : [];
-  return Array.from({ length: KR_LIMIT }, (_, index) => ({
-    id: existing[index]?.id || uid(),
-    title: existing[index]?.title || "",
-    progress: clampPercent(Number(existing[index]?.progress || 0)),
-  }));
-}
-
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  if (!applyingRemoteState) {
-    scheduleRemoteSave();
-  }
+  if (!applyingRemoteState) scheduleRemoteSave();
 }
 
-function quietSaveState() {
-  quietSavePending = true;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function flushQuietSave(refreshPlanningPanels = false) {
-  if (!quietSavePending) return;
-  quietSavePending = false;
-  if (refreshPlanningPanels) {
-    prunePersonalSelections();
-  }
-  saveState();
-  if (refreshPlanningPanels) {
-    renderPersonalPick();
-    renderPersonalBuilder();
-    renderCurrentPersonalPlanningPanels();
-  }
-  renderCurrentPersonalProgress();
-  renderConnectionMap();
-  renderMetrics();
-}
-
-function setSyncStatus(message, tone = "pending") {
-  elements.syncStatus.textContent = message;
-  elements.syncStatus.dataset.tone = tone;
-  elements.personalSyncStatus.textContent = message;
-  elements.personalSyncStatus.dataset.tone = tone;
-}
-
-function setupShareNotice() {
-  if (!elements.shareNotice) return;
-  const isLocalPreview = window.location.protocol === "file:";
-  elements.shareNotice.hidden = !isLocalPreview;
-  const link = elements.shareNotice.querySelector("a");
-  if (link) {
-    link.href = SHARED_APP_URL;
-  }
-}
-
-function setupMobileStageDetails() {
-  const details = document.querySelector(".mobile-stage-details");
-  if (!details) return;
-
-  const mediaQuery = window.matchMedia("(max-width: 760px)");
-  const syncDetailsState = () => {
-    details.open = !mediaQuery.matches;
-  };
-
-  syncDetailsState();
-  if (typeof mediaQuery.addEventListener === "function") {
-    mediaQuery.addEventListener("change", syncDetailsState);
-  } else {
-    mediaQuery.addListener(syncDetailsState);
-  }
-}
-
-function supabaseEndpoint(query = "") {
-  return `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}${query}`;
+function supabaseEndpoint(table, query = "") {
+  return `${SUPABASE_URL}/rest/v1/${table}${query}`;
 }
 
 function supabaseHeaders(extra = {}) {
@@ -411,36 +205,26 @@ function supabaseHeaders(extra = {}) {
   };
 }
 
-function stateHasWork(candidateState) {
-  return Boolean(
-    candidateState.objectiveCandidates.length ||
-      candidateState.confirmedObjectiveIds.length ||
-      Object.values(candidateState.personalSelections).some((selections) => Array.isArray(selections) && selections.length) ||
-      Object.keys(candidateState.personalPlans).length ||
-      Object.keys(candidateState.rewardWishes || {}).length ||
-      candidateState.weeklyReviews.length,
-  );
+function setSyncStatus(message, tone = "pending") {
+  elements.syncStatus.textContent = message;
+  elements.syncStatus.dataset.tone = tone;
 }
 
 async function fetchRemoteState() {
   const response = await fetch(
-    supabaseEndpoint(`?id=eq.${encodeURIComponent(SUPABASE_ROW_ID)}&select=id,data,updated_at`),
-    {
-      headers: supabaseHeaders(),
-    },
+    supabaseEndpoint(SUPABASE_STATE_TABLE, `?id=eq.${encodeURIComponent(SUPABASE_ROW_ID)}&select=id,data,updated_at`),
+    { headers: supabaseHeaders() },
   );
-  if (!response.ok) {
-    throw new Error(await response.text());
-  }
+  if (!response.ok) throw new Error(await response.text());
   const rows = await response.json();
   return rows[0] || null;
 }
 
 async function pushRemoteState() {
   remoteSaving = true;
-  setSyncStatus("공유 저장 중", "pending");
+  setSyncStatus("공유 저장 중");
   try {
-    const response = await fetch(supabaseEndpoint("?on_conflict=id"), {
+    const response = await fetch(supabaseEndpoint(SUPABASE_STATE_TABLE, "?on_conflict=id"), {
       method: "POST",
       headers: supabaseHeaders({
         "Content-Type": "application/json",
@@ -448,12 +232,10 @@ async function pushRemoteState() {
       }),
       body: JSON.stringify([{ id: SUPABASE_ROW_ID, data: state }]),
     });
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
+    if (!response.ok) throw new Error(await response.text());
     const rows = await response.json();
     remoteUpdatedAt = rows[0]?.updated_at || new Date().toISOString();
-    setSyncStatus("공유됨", "ok");
+    setSyncStatus("가족과 공유됨", "ok");
   } catch (error) {
     console.error(error);
     setSyncStatus("내 기기에만 저장 중", "error");
@@ -463,35 +245,23 @@ async function pushRemoteState() {
 }
 
 function scheduleRemoteSave() {
-  setSyncStatus("저장 대기 중", "pending");
+  setSyncStatus("저장 대기 중");
   window.clearTimeout(remoteSaveTimer);
   remoteSaveTimer = window.setTimeout(() => {
     remoteSaveTimer = null;
     pushRemoteState();
-  }, 650);
+  }, 600);
 }
 
 function applyRemoteState(remoteData, updatedAt) {
   applyingRemoteState = true;
   state = normalizeState(remoteData);
-  ensureActiveMembers();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   applyingRemoteState = false;
   remoteUpdatedAt = updatedAt || remoteUpdatedAt;
+  ensureSession();
   render();
-  setSyncStatus("공유됨", "ok");
-}
-
-function ensureActiveMembers() {
-  if (!state.members.some((member) => member.id === activeProposalMemberId)) {
-    activeProposalMemberId = state.members[0].id;
-  }
-  if (!state.members.some((member) => member.id === activePersonalMemberId)) {
-    activePersonalMemberId = state.members[0].id;
-  }
-  if (currentMemberId && !state.members.some((member) => member.id === currentMemberId)) {
-    logout();
-  }
+  setSyncStatus("가족과 공유됨", "ok");
 }
 
 async function pullRemoteState() {
@@ -502,36 +272,591 @@ async function pullRemoteState() {
       await pushRemoteState();
       return;
     }
-    const remoteState = normalizeState(remote.data);
-    if (!remote.data?.objectiveCandidates && stateHasWork(state)) {
-      await pushRemoteState();
-      return;
-    }
     if (remote.updated_at && remote.updated_at !== remoteUpdatedAt) {
-      applyRemoteState(remoteState, remote.updated_at);
+      applyRemoteState(remote.data, remote.updated_at);
     }
   } catch (error) {
     console.error(error);
-    setSyncStatus("내 기기에만 저장 중", "error");
+    setSyncStatus("공유 저장소 연결 필요", "error");
+  }
+}
+
+async function fetchArchives() {
+  try {
+    const response = await fetch(
+      supabaseEndpoint(
+        SUPABASE_ARCHIVE_TABLE,
+        "?select=id,cycle_name,cycle_start_date,archived_at,data&order=cycle_start_date.desc",
+      ),
+      { headers: supabaseHeaders() },
+    );
+    if (!response.ok) throw new Error(await response.text());
+    archives = await response.json();
+    renderArchives();
+  } catch (error) {
+    console.error(error);
+    elements.archiveList.innerHTML = emptyState(
+      "지난 기록 저장소 연결이 필요해요",
+      "Supabase에서 최신 setup.sql을 실행하면 사용할 수 있어요.",
+    );
   }
 }
 
 async function initRemoteSync() {
-  setSyncStatus("공유 저장소 연결 중", "pending");
+  setSyncStatus("공유 저장소 연결 중");
   try {
     const remote = await fetchRemoteState();
-    if (remote?.data?.objectiveCandidates) {
+    if (remote?.data?.feedbacks) {
       applyRemoteState(remote.data, remote.updated_at);
     } else {
       await pushRemoteState();
     }
+    await fetchArchives();
     window.addEventListener("focus", pullRemoteState);
-    window.setInterval(pullRemoteState, 12000);
+    window.setInterval(() => {
+      pullRemoteState();
+      fetchArchives();
+    }, 12000);
   } catch (error) {
     console.error(error);
     setSyncStatus("공유 저장소 연결 필요", "error");
-    showToast("공유 저장소 연결이 필요해요.");
+    showToast("Supabase 연결 설정이 필요해요.");
   }
+}
+
+function memberById(memberId) {
+  return state.members.find((member) => member.id === memberId) || state.members[0];
+}
+
+function currentMember() {
+  return currentMemberId ? memberById(currentMemberId) : null;
+}
+
+function memberLabel(member) {
+  return `${member.role} · ${member.name}`;
+}
+
+function isParent(memberId) {
+  return memberId === "father" || memberId === "mother";
+}
+
+function loginMember(loginId, password) {
+  const normalizedId = loginId.trim().toLowerCase();
+  const member = state.members.find((item) => item.loginId.toLowerCase() === normalizedId);
+  if (!member || password !== FAMILY_PASSWORD) {
+    showToast("아이디 또는 비밀번호를 확인해주세요.");
+    return;
+  }
+  currentMemberId = member.id;
+  activeRecipientId = state.members.find((item) => item.id !== currentMemberId)?.id || null;
+  currentView = "write";
+  localStorage.setItem(SESSION_KEY, currentMemberId);
+  localStorage.setItem(VIEW_KEY, currentView);
+  elements.loginForm.reset();
+  render();
+}
+
+function logout() {
+  currentMemberId = null;
+  activeRecipientId = null;
+  localStorage.removeItem(SESSION_KEY);
+  render();
+}
+
+function ensureSession() {
+  if (currentMemberId && !state.members.some((member) => member.id === currentMemberId)) {
+    logout();
+    return;
+  }
+  if (currentMemberId && (!activeRecipientId || activeRecipientId === currentMemberId)) {
+    activeRecipientId = state.members.find((member) => member.id !== currentMemberId)?.id || null;
+  }
+}
+
+function setView(view) {
+  if (!["write", "received", "commitments", "overview"].includes(view)) return;
+  currentView = view;
+  localStorage.setItem(VIEW_KEY, currentView);
+  renderViewVisibility();
+}
+
+function currentFeedbacks() {
+  return state.feedbacks.filter((item) => item.cycleId === state.cycleId);
+}
+
+function feedbacksByAuthor(authorId) {
+  return currentFeedbacks().filter((item) => item.authorId === authorId);
+}
+
+function receivedFeedbacks(memberId) {
+  return currentFeedbacks().filter((item) => item.recipientId === memberId);
+}
+
+function activeCommitments(memberId = currentMemberId) {
+  return state.commitments.filter((item) => item.cycleId === state.cycleId && item.memberId === memberId);
+}
+
+function feedbackCount(authorId, recipientId, category) {
+  return currentFeedbacks().filter(
+    (item) => item.authorId === authorId && item.recipientId === recipientId && item.category === category,
+  ).length;
+}
+
+function feedbackProgress(memberId) {
+  const recipients = state.members.filter((member) => member.id !== memberId);
+  const completedSlots = recipients.reduce(
+    (total, recipient) =>
+      total +
+      Object.keys(CATEGORY_META).filter((category) => feedbackCount(memberId, recipient.id, category) > 0).length,
+    0,
+  );
+  return Math.round((completedSlots / (recipients.length * Object.keys(CATEGORY_META).length)) * 100);
+}
+
+function averageCommitmentProgress(memberId) {
+  const items = activeCommitments(memberId);
+  if (!items.length) return 0;
+  return Math.round(items.reduce((sum, item) => sum + item.progress, 0) / items.length);
+}
+
+function clampPercent(value) {
+  return Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
+}
+
+function render() {
+  ensureSession();
+  const loggedIn = Boolean(currentMemberId);
+  elements.loginShell.hidden = loggedIn;
+  elements.appShell.hidden = !loggedIn;
+  if (!loggedIn) return;
+
+  const member = currentMember();
+  const progress = feedbackProgress(member.id);
+  const received = receivedFeedbacks(member.id);
+  const commitments = activeCommitments(member.id);
+  elements.pageTitle.textContent = `${member.role} ${member.name}의 관계 점검`;
+  elements.cycleCaption.textContent = `${state.cycleName} · ${formatCyclePeriod()}`;
+  elements.myFeedbackProgress.textContent = `${progress}%`;
+  elements.myFeedbackProgressBar.style.width = `${progress}%`;
+  elements.receivedBadge.textContent = received.length;
+  elements.commitmentBadge.textContent = commitments.length;
+  elements.cycleActions.hidden = !isParent(member.id);
+
+  renderViewVisibility();
+  renderRecipientTabs();
+  renderFeedbackEditor();
+  renderReceived();
+  renderCommitments();
+  renderFamilyOverview();
+  renderArchives();
+}
+
+function renderViewVisibility() {
+  document.querySelectorAll("[data-view]").forEach((button) => {
+    button.setAttribute("aria-selected", String(button.dataset.view === currentView));
+  });
+  document.querySelectorAll("[data-view-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.viewPanel !== currentView;
+  });
+}
+
+function renderRecipientTabs() {
+  const recipients = state.members.filter((member) => member.id !== currentMemberId);
+  elements.recipientTabs.innerHTML = recipients
+    .map((member) => {
+      const completed = Object.keys(CATEGORY_META).filter(
+        (category) => feedbackCount(currentMemberId, member.id, category) > 0,
+      ).length;
+      return `
+        <button type="button" data-recipient-id="${member.id}" aria-selected="${member.id === activeRecipientId}">
+          <span>${escapeHTML(member.role)}</span>
+          <strong>${escapeHTML(member.name)}</strong>
+          <small>${completed}/3 작성</small>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function renderFeedbackEditor() {
+  const recipient = memberById(activeRecipientId);
+  elements.feedbackEditor.innerHTML = Object.entries(CATEGORY_META)
+    .map(([category, meta]) => {
+      const items = currentFeedbacks()
+        .filter(
+          (item) =>
+            item.authorId === currentMemberId && item.recipientId === activeRecipientId && item.category === category,
+        )
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      return `
+        <section class="feedback-column" data-tone="${meta.tone}">
+          <div class="feedback-column-heading">
+            <div>
+              <span>${escapeHTML(recipient.name)}에게</span>
+              <h3>${escapeHTML(meta.label)}</h3>
+            </div>
+            <strong>${items.length}/${FEEDBACK_LIMIT}</strong>
+          </div>
+          <p>${escapeHTML(meta.description)}</p>
+          <form class="feedback-form" data-category="${category}">
+            <textarea rows="3" maxlength="180" placeholder="구체적인 장면이나 행동을 중심으로 적어보세요." ${items.length >= FEEDBACK_LIMIT ? "disabled" : ""} required></textarea>
+            <button class="primary-button" type="submit" ${items.length >= FEEDBACK_LIMIT ? "disabled" : ""}>항목 추가</button>
+          </form>
+          <div class="feedback-item-list">
+            ${
+              items.length
+                ? items
+                    .map(
+                      (item, index) => `
+                        <article class="feedback-item">
+                          <span>${index + 1}</span>
+                          <p>${escapeHTML(item.text)}</p>
+                          <button class="icon-text-button delete-feedback" type="button" data-feedback-id="${item.id}" aria-label="피드백 삭제">삭제</button>
+                        </article>
+                      `,
+                    )
+                    .join("")
+                : emptyState("아직 작성한 내용이 없어요", "한 가지 구체적인 마음부터 전해보세요.")
+            }
+          </div>
+        </section>
+      `;
+    })
+    .join("");
+}
+
+function renderReceived() {
+  const items = receivedFeedbacks(currentMemberId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const counts = Object.keys(CATEGORY_META).map(
+    (category) => items.filter((item) => item.category === category).length,
+  );
+  elements.receivedSummary.innerHTML = Object.entries(CATEGORY_META)
+    .map(
+      ([category, meta], index) => `
+        <article data-tone="${meta.tone}">
+          <span>${escapeHTML(meta.shortLabel)}</span>
+          <strong>${counts[index]}</strong>
+        </article>
+      `,
+    )
+    .join("");
+
+  if (!items.length) {
+    elements.receivedList.innerHTML = emptyState(
+      "아직 도착한 이야기가 없어요",
+      "가족이 내용을 작성하면 이 화면에서 확인할 수 있어요.",
+    );
+    return;
+  }
+
+  elements.receivedList.innerHTML = Object.entries(CATEGORY_META)
+    .map(([category, meta]) => {
+      const categoryItems = items.filter((item) => item.category === category);
+      if (!categoryItems.length) return "";
+      return `
+        <section class="received-group">
+          <div class="received-group-heading" data-tone="${meta.tone}">
+            <h3>${escapeHTML(meta.label)}</h3>
+            <span>${categoryItems.length}개</span>
+          </div>
+          <div class="received-card-grid">
+            ${categoryItems
+              .map((item) => {
+                const author = memberById(item.authorId);
+                const commitment = activeCommitments().find((entry) => entry.sourceFeedbackId === item.id);
+                return `
+                  <article class="received-card" data-tone="${meta.tone}">
+                    <p>${escapeHTML(item.text)}</p>
+                    <footer>
+                      <span>${escapeHTML(author.role)} · ${escapeHTML(author.name)}</span>
+                      ${
+                        category === "strength"
+                          ? `<strong>고마운 마음으로 간직하기</strong>`
+                          : `
+                            <label class="commitment-toggle">
+                              <input class="toggle-commitment" type="checkbox" data-feedback-id="${item.id}" ${commitment ? "checked" : ""} />
+                              <span>3개월 실천으로 선택</span>
+                            </label>
+                          `
+                      }
+                    </footer>
+                  </article>
+                `;
+              })
+              .join("")}
+          </div>
+        </section>
+      `;
+    })
+    .join("");
+}
+
+function renderCommitments() {
+  const items = activeCommitments().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const average = averageCommitmentProgress(currentMemberId);
+  elements.commitmentOverview.innerHTML = `
+    <div>
+      <span>선택한 실천</span>
+      <strong>${items.length}개</strong>
+    </div>
+    <div>
+      <span>평균 진행률</span>
+      <strong>${average}%</strong>
+    </div>
+    <div class="overview-progress">
+      <span>3개월 실천 진행</span>
+      <div class="progress-track"><span style="width: ${average}%"></span></div>
+    </div>
+  `;
+
+  if (!items.length) {
+    elements.commitmentList.innerHTML = emptyState(
+      "아직 선택한 실천이 없어요",
+      "받은 이야기에서 개선 또는 도전 항목을 선택해보세요.",
+    );
+    return;
+  }
+
+  elements.commitmentList.innerHTML = items
+    .map((item, index) => {
+      const author = memberById(item.authorId);
+      const meta = CATEGORY_META[item.category];
+      return `
+        <article class="commitment-card" data-commitment-id="${item.id}">
+          <div class="commitment-number">${index + 1}</div>
+          <div class="commitment-body">
+            <div class="commitment-heading">
+              <div>
+                <span data-tone="${meta.tone}">${escapeHTML(meta.shortLabel)}</span>
+                <h3>${escapeHTML(item.text)}</h3>
+                <p>${escapeHTML(author.role)} ${escapeHTML(author.name)}의 이야기</p>
+              </div>
+              <strong class="commitment-progress-value">${item.progress}%</strong>
+            </div>
+            <label>
+              3개월 동안 실천할 작은 계획
+              <textarea class="commitment-plan" rows="3" maxlength="240" placeholder="언제, 어디서, 어떤 행동부터 시작할지 적어보세요.">${escapeHTML(item.plan)}</textarea>
+            </label>
+            <div class="range-control">
+              <label for="progress-${item.id}">현재 진행률</label>
+              <input id="progress-${item.id}" class="commitment-progress" type="range" min="0" max="100" step="10" value="${item.progress}" style="--progress: ${item.progress}%" />
+            </div>
+          </div>
+          <button class="icon-text-button remove-commitment" type="button" data-commitment-id="${item.id}">선택 해제</button>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderFamilyOverview() {
+  elements.familyOverview.innerHTML = state.members
+    .map((member) => {
+      const given = feedbacksByAuthor(member.id).length;
+      const progress = feedbackProgress(member.id);
+      const commitments = activeCommitments(member.id);
+      const practiceProgress = averageCommitmentProgress(member.id);
+      return `
+        <article class="member-overview-card">
+          <div class="member-overview-heading">
+            <div>
+              <span>${escapeHTML(member.role)}</span>
+              <h3>${escapeHTML(member.name)}</h3>
+            </div>
+            <strong>${progress}%</strong>
+          </div>
+          <div class="progress-track"><span style="width: ${progress}%"></span></div>
+          <dl>
+            <div><dt>작성한 이야기</dt><dd>${given}개</dd></div>
+            <div><dt>선택한 실천</dt><dd>${commitments.length}개</dd></div>
+            <div><dt>실천 진행률</dt><dd>${practiceProgress}%</dd></div>
+          </dl>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function renderArchives() {
+  if (!archives.length) {
+    elements.archiveList.innerHTML = emptyState(
+      "아직 보관된 관계 점검이 없어요",
+      "부모 계정에서 현재 기록을 보관하면 여기에 표시됩니다.",
+    );
+    return;
+  }
+  elements.archiveList.innerHTML = archives
+    .map((archive) => {
+      const archivedState = normalizeState(archive.data);
+      const feedbackCount = archivedState.feedbacks.length;
+      const commitmentCount = archivedState.commitments.length;
+      return `
+        <article class="archive-card">
+          <div>
+            <h4>${escapeHTML(archive.cycle_name)}</h4>
+            <p>가족 이야기 ${feedbackCount}개 · 3개월 실천 ${commitmentCount}개</p>
+            <span>${escapeHTML(formatDateTime(archive.archived_at))} 보관</span>
+          </div>
+          <button class="secondary-button download-archive" type="button" data-archive-id="${archive.id}">기록 받기</button>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function addFeedback(category, text) {
+  const count = feedbackCount(currentMemberId, activeRecipientId, category);
+  if (count >= FEEDBACK_LIMIT) {
+    showToast("항목별로 5개까지 작성할 수 있어요.");
+    return;
+  }
+  const now = new Date().toISOString();
+  state.feedbacks.push({
+    id: uid(),
+    cycleId: state.cycleId,
+    authorId: currentMemberId,
+    recipientId: activeRecipientId,
+    category,
+    text: text.trim(),
+    createdAt: now,
+    updatedAt: now,
+  });
+  saveState();
+  render();
+  showToast("가족에게 전할 이야기를 저장했어요.");
+}
+
+function deleteFeedback(feedbackId) {
+  const feedback = state.feedbacks.find((item) => item.id === feedbackId);
+  if (!feedback || feedback.authorId !== currentMemberId) return;
+  state.feedbacks = state.feedbacks.filter((item) => item.id !== feedbackId);
+  state.commitments = state.commitments.filter((item) => item.sourceFeedbackId !== feedbackId);
+  saveState();
+  render();
+  showToast("항목을 삭제했어요.");
+}
+
+function toggleCommitment(feedbackId, selected) {
+  const feedback = state.feedbacks.find(
+    (item) => item.id === feedbackId && item.recipientId === currentMemberId && item.category !== "strength",
+  );
+  if (!feedback) return;
+  const existing = state.commitments.find(
+    (item) => item.memberId === currentMemberId && item.sourceFeedbackId === feedbackId,
+  );
+  if (selected && !existing) {
+    const now = new Date().toISOString();
+    state.commitments.push({
+      id: uid(),
+      cycleId: state.cycleId,
+      memberId: currentMemberId,
+      sourceFeedbackId: feedback.id,
+      authorId: feedback.authorId,
+      category: feedback.category,
+      text: feedback.text,
+      plan: "",
+      progress: 0,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+  if (!selected && existing) {
+    state.commitments = state.commitments.filter((item) => item.id !== existing.id);
+  }
+  saveState();
+  render();
+}
+
+function updateCommitmentFromEvent(event) {
+  const card = event.target.closest("[data-commitment-id]");
+  const commitment = state.commitments.find((item) => item.id === card?.dataset.commitmentId);
+  if (!commitment || commitment.memberId !== currentMemberId) return;
+  if (event.target.matches(".commitment-plan")) {
+    commitment.plan = event.target.value;
+  }
+  if (event.target.matches(".commitment-progress")) {
+    commitment.progress = clampPercent(Number(event.target.value));
+    event.target.style.setProperty("--progress", `${commitment.progress}%`);
+    card.querySelector(".commitment-progress-value").textContent = `${commitment.progress}%`;
+  }
+  commitment.updatedAt = new Date().toISOString();
+  saveState();
+  renderCommitmentSummaryOnly();
+}
+
+function renderCommitmentSummaryOnly() {
+  const items = activeCommitments();
+  const average = averageCommitmentProgress(currentMemberId);
+  const values = elements.commitmentOverview.querySelectorAll("strong");
+  if (values[0]) values[0].textContent = `${items.length}개`;
+  if (values[1]) values[1].textContent = `${average}%`;
+  const bar = elements.commitmentOverview.querySelector(".progress-track span");
+  if (bar) bar.style.width = `${average}%`;
+}
+
+async function archiveCurrentCycle(showToastMessage = true) {
+  setSyncStatus("현재 기록 보관 중");
+  const response = await fetch(supabaseEndpoint(SUPABASE_ARCHIVE_TABLE, "?on_conflict=id"), {
+    method: "POST",
+    headers: supabaseHeaders({
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=representation",
+    }),
+    body: JSON.stringify([
+      {
+        id: state.cycleId,
+        cycle_name: state.cycleName,
+        cycle_start_date: state.cycleStartDate,
+        data: state,
+      },
+    ]),
+  });
+  if (!response.ok) throw new Error(await response.text());
+  await fetchArchives();
+  setSyncStatus("가족과 공유됨", "ok");
+  if (showToastMessage) showToast("현재 관계 점검 기록을 보관했어요.");
+}
+
+async function startNextCycle() {
+  if (!isParent(currentMemberId)) return;
+  if (!window.confirm("현재 기록을 보관하고 새로운 3개월 관계 점검을 시작할까요?")) return;
+  try {
+    await archiveCurrentCycle(false);
+    const nextStart = formatDateInput(addMonths(new Date(`${state.cycleStartDate}T00:00:00`), 3));
+    state = seedState(nextStart);
+    activeRecipientId = state.members.find((member) => member.id !== currentMemberId)?.id || null;
+    saveState();
+    await pushRemoteState();
+    render();
+    showToast("새로운 3개월 관계 점검을 시작했어요.");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("새 주기 시작 실패", "error");
+    showToast("기록 보관 중 문제가 생겼어요.");
+  }
+}
+
+function formatCyclePeriod() {
+  const start = new Date(`${state.cycleStartDate}T00:00:00`);
+  const end = addMonths(start, 3);
+  end.setDate(end.getDate() - 1);
+  return `${formatDate(start)} ~ ${formatDate(end)}`;
+}
+
+function formatDate(date) {
+  return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "short", day: "numeric" }).format(date);
+}
+
+function formatDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function escapeHTML(value) {
@@ -543,1873 +868,102 @@ function escapeHTML(value) {
     .replaceAll("'", "&#039;");
 }
 
-function memberById(memberId) {
-  return state.members.find((member) => member.id === memberId) || state.members[0];
-}
-
-function valueById(valueId) {
-  return state.values.find((value) => value.id === valueId) || state.values[0];
-}
-
-function memberLabel(member) {
-  if (member.role === "큰아들") return "승현";
-  if (member.role === "둘째아들") return "수현";
-  if (member.role === "셋째아들") return "서현";
-  if (member.role === "넷째딸") return "소현";
-  return member.role;
-}
-
-function memberDisplayName(member) {
-  return `${memberLabel(member)} · ${member.name}`;
-}
-
-function loadSessionMemberId() {
-  return localStorage.getItem(SESSION_KEY);
-}
-
-function currentMember() {
-  return currentMemberId ? memberById(currentMemberId) : null;
-}
-
-function isAdminMember(memberId) {
-  return memberId === "father" || memberId === "mother";
-}
-
-function loginMember(loginId, password) {
-  const normalizedLoginId = loginId.trim().toLowerCase();
-  const member = state.members.find((item) => item.loginId?.toLowerCase() === normalizedLoginId);
-  if (!member || password !== FAMILY_PASSWORD) {
-    showToast("아이디 또는 비밀번호를 확인해주세요.");
-    return;
-  }
-
-  currentMemberId = member.id;
-  activeProposalMemberId = member.id;
-  activePersonalMemberId = member.id;
-  currentView = "personal";
-  localStorage.setItem(SESSION_KEY, currentMemberId);
-  localStorage.setItem(VIEW_KEY, currentView);
-  elements.loginForm.reset();
-  render();
-  showToast(`${memberLabel(member)}으로 로그인했어요.`);
-}
-
-function logout() {
-  currentMemberId = null;
-  currentView = "personal";
-  localStorage.removeItem(SESSION_KEY);
-  localStorage.setItem(VIEW_KEY, currentView);
-  render();
-}
-
-function setView(view) {
-  if (view === "admin" && !isAdminMember(currentMemberId)) {
-    showToast("관리자 페이지는 부모만 볼 수 있어요.");
-    return;
-  }
-  currentView = view;
-  localStorage.setItem(VIEW_KEY, currentView);
-  render();
-}
-
-function applyShellVisibility() {
-  const loggedIn = Boolean(currentMemberId && state.members.some((member) => member.id === currentMemberId));
-  if (!loggedIn) {
-    elements.loginShell.hidden = false;
-    elements.adminShell.hidden = true;
-    elements.personalShell.hidden = true;
-    return;
-  }
-
-  elements.loginShell.hidden = true;
-  elements.showAdminView.hidden = !isAdminMember(currentMemberId);
-  elements.adminShell.hidden = currentView !== "admin";
-  elements.personalShell.hidden = currentView !== "personal";
-}
-
-function familyKrKey(objectiveId, krId) {
-  return `${objectiveId}::${krId}`;
-}
-
-function parseFamilyKrKey(key) {
-  const [objectiveId, krId] = key.split("::");
-  return { objectiveId, krId };
-}
-
-function confirmedObjectives() {
-  return state.confirmedObjectiveIds
-    .map((id) => state.objectiveCandidates.find((candidate) => candidate.id === id))
-    .filter(Boolean);
-}
-
-function familyKrPool() {
-  return confirmedObjectives().flatMap((objective) =>
-    objective.familyKrs
-      .filter((kr) => kr.title.trim())
-      .map((kr) => ({
-        key: familyKrKey(objective.id, kr.id),
-        objective,
-        kr,
-      })),
-  );
-}
-
-function candidateRanked() {
-  return [...state.objectiveCandidates].sort((a, b) => {
-    const diff = b.votes.length - a.votes.length;
-    if (diff !== 0) return diff;
-    return state.objectiveCandidates.indexOf(a) - state.objectiveCandidates.indexOf(b);
-  });
-}
-
-function hasTieAtCutoff() {
-  const ranked = candidateRanked();
-  if (ranked.length <= OBJECTIVE_LIMIT) {
-    return false;
-  }
-  return ranked[OBJECTIVE_LIMIT - 1].votes.length === ranked[OBJECTIVE_LIMIT].votes.length;
-}
-
-function personalSelections(memberId) {
-  const selections = state.personalSelections[memberId] || [];
-  const validKeys = new Set(familyKrPool().map((item) => item.key));
-  return selections.filter((key) => validKeys.has(key));
-}
-
-function getPersonalPlan(memberId, key) {
-  state.personalPlans[memberId] ||= {};
-  state.personalPlans[memberId][key] ||= {
-    personalKrs: Array.from({ length: KR_LIMIT }, () => ({
-      id: uid(),
-      title: "",
-      initiatives: [],
-      progress: 0,
-    })),
-  };
-
-  const plan = state.personalPlans[memberId][key];
-  plan.personalKrs ||= [];
-  while (plan.personalKrs.length < KR_LIMIT) {
-    plan.personalKrs.push({ id: uid(), title: "", initiatives: [], progress: 0 });
-  }
-  plan.personalKrs = plan.personalKrs.slice(0, KR_LIMIT).map((kr) => ({
-    id: kr.id || uid(),
-    title: kr.title || "",
-    initiatives: Array.isArray(kr.initiatives) ? kr.initiatives.slice(0, INITIATIVE_LIMIT) : [],
-    progress: clampPercent(Number(kr.progress || 0)),
-  }));
-  return plan;
-}
-
-function clampPercent(value) {
-  return Math.max(0, Math.min(100, Math.round(value)));
-}
-
-function clampPersonalStep(step) {
-  return Math.max(1, Math.min(PERSONAL_STEP_TOTAL, Number.isFinite(step) ? Math.round(step) : 1));
-}
-
-function personalStepMeta() {
-  return [
-    { title: "1. 이번 분기 목표 후보", caption: "우리 가족이 달성했으면 하는 목표를 작성합니다." },
-    { title: "2. 목표 투표", caption: "좋다고 생각하는 목표 후보에 투표합니다." },
-    { title: "3. 목표와 확인 결과", caption: "확정된 목표와 숫자로 확인할 결과를 작성합니다." },
-    { title: "4. 내 목표 선택", caption: "전체 확인 결과 중 2가지를 내 목표로 가져갑니다." },
-    { title: "5. 내 결과와 핵심 행동", caption: "내 목표의 확인 결과와 핵심 행동을 작성합니다." },
-    { title: "6. 달성률별 선물", caption: "70/80/90/95% 달성률별 선물을 적습니다." },
-    { title: "7. 내 주간 리뷰", caption: "매주 내 목표 기준으로 실행과 다음 행동을 남깁니다." },
-  ];
-}
-
-function setPersonalStep(step) {
-  currentPersonalStep = clampPersonalStep(step);
-  localStorage.setItem(PERSONAL_STEP_KEY, String(currentPersonalStep));
-  renderPersonalWizard();
-  if (!elements.personalShell.hidden) {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-}
-
-function filledFamilyKrCount() {
-  return confirmedObjectives().reduce(
-    (sum, objective) => sum + objective.familyKrs.filter((kr) => kr.title.trim()).length,
-    0,
-  );
-}
-
-function totalPersonalSelections() {
-  return state.members.reduce((sum, member) => sum + personalSelections(member.id).length, 0);
-}
-
-function filledPersonalKrCount() {
-  return state.members.reduce((sum, member) => {
-    return (
-      sum +
-      personalSelections(member.id).reduce((innerSum, key) => {
-        const plan = getPersonalPlan(member.id, key);
-        return innerSum + plan.personalKrs.filter((kr) => kr.title.trim()).length;
-      }, 0)
-    );
-  }, 0);
-}
-
-function filledInitiativeCount() {
-  return state.members.reduce((sum, member) => {
-    return (
-      sum +
-      personalSelections(member.id).reduce((innerSum, key) => {
-        const plan = getPersonalPlan(member.id, key);
-        return innerSum + plan.personalKrs.reduce((count, kr) => count + kr.initiatives.filter(Boolean).length, 0);
-      }, 0)
-    );
-  }, 0);
-}
-
-function personalKrActive(kr) {
-  return kr.title.trim() || kr.initiatives.length || kr.progress > 0;
-}
-
-function averageProgress(items) {
-  if (!items.length) return 0;
-  return clampPercent(items.reduce((sum, value) => sum + value, 0) / items.length);
-}
-
-function latestWeeklyProgress(memberId, key) {
-  const latestReview = state.weeklyReviews
-    .filter((review) => review.memberId === memberId && review.targetKey === key && Number.isFinite(review.progress))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
-  return latestReview ? latestReview.progress : null;
-}
-
-function personalObjectiveKrAchievement(memberId, key) {
-  const plan = getPersonalPlan(memberId, key);
-  const krs = plan.personalKrs.filter(personalKrActive);
-  return averageProgress(krs.map((kr) => kr.progress));
-}
-
-function personalObjectiveAchievement(memberId, key) {
-  const weeklyProgress = latestWeeklyProgress(memberId, key);
-  return weeklyProgress === null ? personalObjectiveKrAchievement(memberId, key) : weeklyProgress;
-}
-
-function memberAchievement(memberId) {
-  const selections = personalSelections(memberId);
-  if (!selections.length) return 0;
-  return averageProgress(selections.map((key) => personalObjectiveAchievement(memberId, key)));
-}
-
-function overallAchievementProgress() {
-  return averageProgress(state.members.map((member) => memberAchievement(member.id)));
-}
-
-function cycleStart() {
-  return new Date(`${state.cycleStartDate || defaultCycleStartDate()}T00:00:00`);
-}
-
-function addDays(date, days) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
-function formatKoreanDate(date) {
-  return new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(date);
-}
-
-function stageItems() {
-  const start = cycleStart();
-  return [
-    {
-      title: "목표 후보 작성",
-      period: `D-15~D-13 · ${formatKoreanDate(addDays(start, -15))}~${formatKoreanDate(addDays(start, -13))}`,
-      detail: "우리 가족이 달성했으면 하는 목표를 적습니다.",
-      done: state.objectiveCandidates.some((candidate) => candidate.proposerId === currentMemberId),
-    },
-    {
-      title: "목표 투표",
-      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
-      detail: "마음에 드는 후보에 투표합니다.",
-      done: state.objectiveCandidates.some((candidate) => candidate.votes.includes(currentMemberId)),
-    },
-    {
-      title: "목표 2개 확정",
-      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
-      detail: "가족회의에서 이번 분기 목표 2개를 정합니다.",
-      done: confirmedObjectives().length === OBJECTIVE_LIMIT,
-    },
-    {
-      title: "확인 결과 작성",
-      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
-      detail: "각 목표를 숫자로 확인할 결과를 작성합니다.",
-      done: filledFamilyKrCount() >= OBJECTIVE_LIMIT * KR_LIMIT,
-    },
-    {
-      title: "내 목표 2개 선택",
-      period: `D-10 · ${formatKoreanDate(addDays(start, -10))}`,
-      detail: "전체 확인 결과 중 내 목표 2개를 가져갑니다.",
-      done: personalSelections(currentMemberId).length >= PERSONAL_OBJECTIVE_LIMIT,
-    },
-    {
-      title: "내 결과와 핵심 행동",
-      period: `D-7 · ${formatKoreanDate(addDays(start, -7))}`,
-      detail: "내 목표를 위한 확인 결과와 핵심 행동을 작성합니다.",
-      done:
-        personalSelections(currentMemberId).length > 0 &&
-        personalSelections(currentMemberId).every((key) => getPersonalPlan(currentMemberId, key).personalKrs.some((kr) => kr.title.trim())),
-    },
-    {
-      title: "달성률별 선물",
-      period: `D-7 · ${formatKoreanDate(addDays(start, -7))}`,
-      detail: "70/80/90/95% 선물을 적습니다.",
-      done: Object.values(getRewardWish(currentMemberId)).some(Boolean),
-    },
-  ];
-}
-
-function personalStepGuideItems() {
-  const start = cycleStart();
-  const rewardWish = getRewardWish(currentMemberId);
-  const memberReviews = state.weeklyReviews.filter((review) => review.memberId === currentMemberId).length;
-  const personalResultsDone =
-    personalSelections(currentMemberId).length > 0 &&
-    personalSelections(currentMemberId).every((key) => getPersonalPlan(currentMemberId, key).personalKrs.some((kr) => kr.title.trim()));
-
-  return [
-    {
-      period: `D-15~D-13 · ${formatKoreanDate(addDays(start, -15))}~${formatKoreanDate(addDays(start, -13))}`,
-      detail: "우리 가족이 달성했으면 하는 모습을 한 문장으로 적어보세요.",
-      done: state.objectiveCandidates.some((candidate) => candidate.proposerId === currentMemberId),
-    },
-    {
-      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
-      detail: "마음에 드는 후보에 투표합니다. 여러 명이 공감하는 목표를 찾는 단계예요.",
-      done: state.objectiveCandidates.some((candidate) => candidate.votes.includes(currentMemberId)),
-    },
-    {
-      period: `D-12 · ${formatKoreanDate(addDays(start, -12))}`,
-      detail: "가족 목표 2개를 확정하고, 각 목표가 되었는지 숫자로 확인할 결과를 적습니다.",
-      done: confirmedObjectives().length === OBJECTIVE_LIMIT && filledFamilyKrCount() >= OBJECTIVE_LIMIT * KR_LIMIT,
-    },
-    {
-      period: `D-10 · ${formatKoreanDate(addDays(start, -10))}`,
-      detail: "전체 확인 결과 중에서 내가 맡을 목표 2개를 가져갑니다.",
-      done: personalSelections(currentMemberId).length >= PERSONAL_OBJECTIVE_LIMIT,
-    },
-    {
-      period: `D-7 · ${formatKoreanDate(addDays(start, -7))}`,
-      detail: "내가 가져온 목표마다 확인 결과와 핵심 행동을 3개 이내로 적습니다.",
-      done: personalResultsDone,
-    },
-    {
-      period: `D-7 · ${formatKoreanDate(addDays(start, -7))}`,
-      detail: "가족 목표 달성률에 따라 받고 싶은 선물을 적습니다.",
-      done: Object.values(rewardWish).some(Boolean),
-    },
-    {
-      period: "매주",
-      detail: "이번 주 실행 내용과 다음 행동을 남겨서 기록으로 쌓습니다.",
-      done: memberReviews > 0,
-    },
-  ];
-}
-
-function stageCardsHTML(items) {
-  return items
-    .map(
-      (item) => `
-        <article class="stage-card ${item.done ? "done" : ""}">
-          <span>${escapeHTML(item.period)}</span>
-          <strong>${escapeHTML(item.title)}</strong>
-          <p>${escapeHTML(item.detail)}</p>
-        </article>
-      `,
-    )
-    .join("");
-}
-
-function renderMobileStageGuide() {
-  if (!elements.mobileStageGuide) return;
-  const metas = personalStepMeta();
-  const guides = personalStepGuideItems();
-  const activeIndex = currentPersonalStep - 1;
-  const meta = metas[activeIndex];
-  const guide = guides[activeIndex];
-  if (!meta || !guide) {
-    elements.mobileStageGuide.innerHTML = "";
-    return;
-  }
-
-  const title = meta.title.replace(/^\d+\.\s*/, "");
-  elements.mobileStageGuide.innerHTML = `
-    <article class="mobile-stage-card ${guide.done ? "done" : ""}">
-      <div class="mobile-stage-card-head">
-        <span>${escapeHTML(guide.period)}</span>
-        <small>${guide.done ? "완료" : `${currentPersonalStep}/${PERSONAL_STEP_TOTAL}`}</small>
-      </div>
-      <strong>지금은 ${currentPersonalStep}단계예요</strong>
-      <h3>${escapeHTML(title)}</h3>
-      <p>${escapeHTML(guide.detail || meta.caption)}</p>
-    </article>
-  `;
-}
-
-function getRewardWish(memberId) {
-  state.rewardWishes[memberId] ||= { p70: "", p80: "", p90: "", p95: "" };
-  return state.rewardWishes[memberId];
-}
-
-function familyKrItemByKey(key) {
-  const { objectiveId, krId } = parseFamilyKrKey(key);
-  const objective = state.objectiveCandidates.find((candidate) => candidate.id === objectiveId);
-  const kr = objective?.familyKrs.find((item) => item.id === krId);
-  if (!objective || !kr) return null;
-  return { objective, kr, key };
-}
-
-function familyKrLabelByKey(key) {
-  const item = familyKrItemByKey(key);
-  if (!item) return "연결된 목표 없음";
-  return `${item.objective.title} · ${item.kr.title}`;
-}
-
-function setupProgressItems() {
-  const confirmed = confirmedObjectives().length;
-  const confirmedTarget = OBJECTIVE_LIMIT;
-  const familyKrTarget = confirmedTarget * KR_LIMIT;
-  const familyKrs = filledFamilyKrCount();
-  const personalTarget = state.members.length * PERSONAL_OBJECTIVE_LIMIT;
-  const personalSelected = totalPersonalSelections();
-  const selectedTarget = personalSelected * KR_LIMIT;
-  const personalKrs = filledPersonalKrCount();
-  const reviewTarget = Math.max(state.members.length, 1);
-  const reviews = state.weeklyReviews.length;
-
-  return [
-    {
-      title: "가족 목표 확정",
-      detail: `${confirmed}/${confirmedTarget}`,
-      progress: clampPercent((confirmed / confirmedTarget) * 100),
-    },
-    {
-      title: "확인 결과 작성",
-      detail: `${familyKrs}/${familyKrTarget}`,
-      progress: clampPercent((familyKrs / familyKrTarget) * 100),
-    },
-    {
-      title: "내 목표 선택",
-      detail: `${personalSelected}/${personalTarget}`,
-      progress: clampPercent((personalSelected / personalTarget) * 100),
-    },
-    {
-      title: "내 결과 작성",
-      detail: `${personalKrs}/${selectedTarget}`,
-      progress: personalSelected ? clampPercent((personalKrs / selectedTarget) * 100) : 0,
-    },
-    {
-      title: "주간 리뷰",
-      detail: `${reviews}/${reviewTarget}`,
-      progress: clampPercent((Math.min(reviews, reviewTarget) / reviewTarget) * 100),
-    },
-  ];
-}
-
-function overallSetupProgress() {
-  const items = setupProgressItems();
-  return clampPercent(items.reduce((sum, item) => sum + item.progress, 0) / items.length);
-}
-
-function recommendationsFor(memberId) {
-  const map = {
-    father: [
-      ["가족이 사회에 도움이 되는 경험을 만드는 분기", "righteousness", "가훈을 가족 밖의 행동으로 연결한다."],
-      ["가족의 돈과 시간을 더 지혜롭게 쓰는 분기", "wisdom", "선택 전에 생각하고 함께 결정하는 힘을 키운다."],
-      ["아이들이 실패를 숨기지 않아도 되는 분기", "benevolence", "실수를 보듬는 분위기를 만든다."],
-    ],
-    mother: [
-      ["서로의 마음을 먼저 살피는 분기", "propriety", "말투와 생활 리듬에서 배려를 실천한다."],
-      ["감사와 진실이 식탁에서 오가는 분기", "integrity", "작은 감사와 솔직한 말이 쌓이게 한다."],
-      ["형제자매가 서로 돌보는 분기", "benevolence", "도움과 화해를 가족 문화로 만든다."],
-    ],
-    son1: [
-      ["공부 루틴을 스스로 책임지는 분기", "wisdom", "몸이 자라는 만큼 생각하는 힘도 키운다."],
-      ["동생에게 좋은 본보기가 되는 분기", "propriety", "강요보다 행동으로 보여준다."],
-      ["정직하게 말하고 빨리 회복하는 분기", "integrity", "실수보다 회복을 중요하게 본다."],
-    ],
-    son2: [
-      ["꾸준함으로 자신감을 만드는 분기", "wisdom", "작은 루틴을 반복해서 성장한다."],
-      ["형제와 다툼을 줄이는 분기", "benevolence", "상대의 실수를 공격하지 않는다."],
-      ["옳은 일을 피하지 않는 분기", "righteousness", "도움이 필요한 순간에 용기 있게 움직인다."],
-    ],
-    son3: [
-      ["생각하고 행동하는 힘을 키우는 분기", "wisdom", "바로 반응하기 전에 한 번 생각한다."],
-      ["친구와 가족에게 따뜻한 말을 늘리는 분기", "benevolence", "작은 말로 분위기를 바꾼다."],
-      ["약속을 지키는 나를 만드는 분기", "integrity", "말한 것을 행동으로 이어간다."],
-    ],
-    daughter1: [
-      ["가족 모두가 소현이와 즐겁게 연결되는 분기", "benevolence", "어린 가족 구성원의 리듬을 함께 돌본다."],
-      ["집안에서 서로 기다려주는 분기", "propriety", "작은 배려를 반복한다."],
-      ["감사 표현이 많아지는 분기", "integrity", "좋았던 순간을 말로 남긴다."],
-    ],
-  };
-
-  return (map[memberId] || map.father).map(([title, valueId, note]) => ({
-    id: uid(),
-    proposerId: memberId,
-    title,
-    valueId,
-    note,
-    votes: [],
-    familyKrs: normalizeFamilyKrs([]),
-  }));
-}
-
-function render() {
-  elements.cycleName.value = state.cycleName;
-  elements.cycleStartDate.value = state.cycleStartDate || defaultCycleStartDate();
-  elements.missionText.textContent = state.mission;
-  renderValues();
-  renderMemberTabs();
-  renderProposalForm();
-  renderWeeklyReviewForm();
-  renderRecommendations();
-  renderCandidates();
-  renderFamilyKrs();
-  renderPersonalPick();
-  renderPersonalBuilder();
-  renderAdminRewards();
-  renderWeeklyReviews();
-  renderConnectionMap();
-  renderMetrics();
-  renderPersonalApp();
-  applyShellVisibility();
-}
-
-function renderValues() {
-  elements.valuesGrid.innerHTML = state.values
-    .map(
-      (value) => `
-        <article class="value-card">
-          <strong>${escapeHTML(value.ko)} <span>${escapeHTML(value.han)}</span></strong>
-          <p>${escapeHTML(value.title)}</p>
-          <small>${escapeHTML(value.description)}</small>
-        </article>
-      `,
-    )
-    .join("");
-}
-
-function renderMemberTabs() {
-  const tabs = (activeId, type) =>
-    state.members
-      .map(
-        (member) => `
-          <button type="button" data-member-id="${member.id}" data-tab-type="${type}" aria-selected="${member.id === activeId}">
-            ${escapeHTML(memberLabel(member))}
-          </button>
-        `,
-      )
-      .join("");
-
-  elements.proposalMemberTabs.innerHTML = tabs(activeProposalMemberId, "proposal");
-  elements.personalMemberTabs.innerHTML = tabs(activePersonalMemberId, "personal");
-}
-
-function renderProposalForm() {
-  elements.proposalValue.innerHTML = state.values
-    .map((value) => `<option value="${value.id}">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</option>`)
-    .join("");
-}
-
-function renderRecommendations() {
-  const member = memberById(activeProposalMemberId);
-  elements.recommendTitle.textContent = `${memberLabel(member)} 추천안`;
-  if (visibleRecommendationMemberId !== activeProposalMemberId) {
-    elements.recommendList.innerHTML = emptyState("추천안이 필요할 때만 열어보세요", "선택한 사람의 관점과 가족 미션·핵심가치를 반영해 3개를 제시합니다.");
-    return;
-  }
-
-  elements.recommendList.innerHTML = recommendationsFor(activeProposalMemberId)
-    .map((candidate) => {
-      const value = valueById(candidate.valueId);
-      return `
-        <article class="recommend-card">
-          <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
-          <h4>${escapeHTML(candidate.title)}</h4>
-          <p>${escapeHTML(candidate.note)}</p>
-          <button class="ghost-action add-recommendation" type="button" data-title="${escapeHTML(candidate.title)}" data-value-id="${candidate.valueId}" data-note="${escapeHTML(candidate.note)}">
-            <svg><use href="#icon-plus"></use></svg>
-            <span>후보로 올리기</span>
-          </button>
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function renderPersonalApp() {
-  const member = currentMember();
-  if (!member) return;
-
-  const progress = memberAchievement(member.id);
-  const reward = getRewardWish(member.id);
-  const selections = personalSelections(member.id);
-  const pool = familyKrPool();
-  const startDate = cycleStart();
-
-  elements.personalEyebrow.textContent = memberDisplayName(member);
-  elements.personalTitle.textContent = `${memberLabel(member)}의 이번 분기 목표`;
-  elements.personalCycleName.textContent = state.cycleName;
-  elements.personalMission.textContent = state.mission;
-  elements.personalAchievement.textContent = `${progress}%`;
-  elements.personalAchievementBar.style.width = `${progress}%`;
-  elements.personalScheduleCaption.textContent = `분기 시작일 ${formatKoreanDate(startDate)} 기준으로 준비 일정을 보여줍니다.`;
-  elements.showAdminView.hidden = !isAdminMember(member.id);
-
-  elements.personalProposalValue.innerHTML = state.values
-    .map((value) => `<option value="${value.id}">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</option>`)
-    .join("");
-
-  elements.personalStageGrid.innerHTML = stageCardsHTML(stageItems());
-  renderMobileStageGuide();
-
-  renderPersonalRecommendations(member.id);
-  renderPersonalVoteBoard(member.id);
-  renderPersonalConfirmedGoals();
-  renderPersonalFamilyResultBoard();
-  renderPersonalPickArea(member.id, pool, selections);
-  renderPersonalPlanBoard(member.id, pool, selections);
-  renderRewardForm(reward);
-  renderPersonalReviewForm(member.id, selections);
-  renderPersonalWeeklyReviews(member.id);
-  renderPersonalWizard();
-}
-
-function renderCurrentPersonalProgress() {
-  const member = currentMember();
-  if (!member) return;
-  const progress = memberAchievement(member.id);
-  elements.personalAchievement.textContent = `${progress}%`;
-  elements.personalAchievementBar.style.width = `${progress}%`;
-  elements.personalStageGrid.innerHTML = stageCardsHTML(stageItems());
-  renderMobileStageGuide();
-}
-
-function renderCurrentPersonalPlanningPanels() {
-  const member = currentMember();
-  if (!member) return;
-  const pool = familyKrPool();
-  const selections = personalSelections(member.id);
-  renderPersonalPickArea(member.id, pool, selections);
-  renderPersonalPlanBoard(member.id, pool, selections);
-  renderPersonalReviewForm(member.id, selections);
-  renderCurrentPersonalProgress();
-}
-
-function renderPersonalWizard() {
-  const metas = personalStepMeta();
-  const activeIndex = currentPersonalStep - 1;
-  const progress = clampPercent((currentPersonalStep / PERSONAL_STEP_TOTAL) * 100);
-
-  document.querySelectorAll("[data-wizard-step]").forEach((panel) => {
-    panel.hidden = Number(panel.dataset.wizardStep) !== currentPersonalStep;
-  });
-
-  elements.personalWizardTitle.textContent = metas[activeIndex].title;
-  elements.personalWizardCaption.textContent = metas[activeIndex].caption;
-  elements.personalWizardProgress.textContent = `${progress}%`;
-  elements.personalWizardBar.style.width = `${progress}%`;
-  elements.personalStepCounter.textContent = `${currentPersonalStep}/${PERSONAL_STEP_TOTAL}`;
-  elements.personalPrevStep.disabled = currentPersonalStep === 1;
-  elements.personalNextStep.textContent = currentPersonalStep === PERSONAL_STEP_TOTAL ? "완료" : "다음";
-  renderMobileStageGuide();
-}
-
-function renderPersonalRecommendations(memberId) {
-  if (visibleRecommendationMemberId !== memberId) {
-    elements.personalRecommendList.innerHTML = emptyState("추천안이 필요할 때만 열어보세요", "가족 미션과 핵심가치를 반영해 3개를 제시합니다.");
-    return;
-  }
-
-  elements.personalRecommendList.innerHTML = recommendationsFor(memberId)
-    .map((candidate) => {
-      const value = valueById(candidate.valueId);
-      return `
-        <article class="recommend-card">
-          <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
-          <h4>${escapeHTML(candidate.title)}</h4>
-          <p>${escapeHTML(candidate.note)}</p>
-          <button class="ghost-action add-personal-recommendation" type="button" data-title="${escapeHTML(candidate.title)}" data-value-id="${candidate.valueId}" data-note="${escapeHTML(candidate.note)}">
-            <svg><use href="#icon-plus"></use></svg>
-            <span>후보로 올리기</span>
-          </button>
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function renderPersonalVoteBoard(memberId) {
-  const ranked = candidateRanked();
-  if (!ranked.length) {
-    elements.personalVoteBoard.innerHTML = emptyState("투표할 후보가 없어요", "먼저 목표 후보를 올려보세요.");
-    return;
-  }
-
-  elements.personalVoteBoard.innerHTML = ranked
-    .map((candidate, index) => {
-      const proposer = memberById(candidate.proposerId);
-      const value = valueById(candidate.valueId);
-      const voted = candidate.votes.includes(memberId);
-      const isEditing = editingCandidateId === candidate.id;
-      return `
-        <article class="candidate-card ${voted ? "selected" : ""}" data-candidate-id="${candidate.id}" data-personal-vote-candidate-id="${candidate.id}">
-          <div class="card-topline">
-            <span class="rank-badge">${index < OBJECTIVE_LIMIT ? `TOP ${index + 1}` : "후보"}</span>
-            <div class="candidate-card-actions">
-              <span class="pill">${candidate.votes.length}표</span>
-              <button class="icon-button edit-candidate" type="button" title="목표 수정" aria-label="목표 수정">
-                <svg><use href="#icon-edit"></use></svg>
-              </button>
-            </div>
-          </div>
-          ${
-            isEditing
-              ? renderCandidateEditForm(candidate)
-              : `
-                <h3>${escapeHTML(candidate.title)}</h3>
-                <p>${escapeHTML(candidate.note || "메모 없음")}</p>
-                <div class="candidate-meta">
-                  <span class="pill">${escapeHTML(memberLabel(proposer))}</span>
-                  <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
-                </div>
-                <button class="${voted ? "secondary-action" : "primary-action"} personal-vote-button" type="button">
-                  <svg><use href="${voted ? "#icon-check" : "#icon-plus"}"></use></svg>
-                  <span>${voted ? "투표함" : "투표하기"}</span>
-                </button>
-              `
-          }
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function candidateValueOptions(selectedValueId) {
-  return state.values
-    .map(
-      (value) =>
-        `<option value="${value.id}" ${value.id === selectedValueId ? "selected" : ""}>${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</option>`,
-    )
-    .join("");
-}
-
-function renderCandidateEditForm(candidate) {
-  return `
-    <form class="candidate-edit-form" data-edit-candidate-id="${candidate.id}">
-      <label>
-        목표 후보
-        <input class="candidate-edit-title" type="text" maxlength="80" value="${escapeHTML(candidate.title)}" required />
-      </label>
-      <label>
-        연결 가치
-        <select class="candidate-edit-value">${candidateValueOptions(candidate.valueId)}</select>
-      </label>
-      <label>
-        메모
-        <textarea class="candidate-edit-note" rows="3" maxlength="180">${escapeHTML(candidate.note || "")}</textarea>
-      </label>
-      <div class="candidate-edit-actions">
-        <button class="secondary-action cancel-candidate-edit" type="button">취소</button>
-        <button class="primary-action" type="submit">
-          <svg><use href="#icon-check"></use></svg>
-          <span>저장</span>
-        </button>
-      </div>
-    </form>
-  `;
-}
-
-function renderPersonalConfirmedGoals() {
-  const objectives = confirmedObjectives();
-  if (!objectives.length) {
-    elements.personalConfirmedGoals.innerHTML = emptyState("아직 확정된 목표가 없어요", "목표 투표 후 가족회의에서 2개를 확정합니다.");
-    return;
-  }
-
-  elements.personalConfirmedGoals.innerHTML = objectives
-    .map(
-      (objective) => `
-        <article class="picked-card">
-          <span class="parent-label">현이네 목표</span>
-          <h4>${escapeHTML(objective.title)}</h4>
-        </article>
-      `,
-    )
-    .join("");
-}
-
-function renderPersonalFamilyResultBoard() {
-  const objectives = confirmedObjectives();
-  if (!objectives.length) {
-    elements.personalFamilyResultBoard.innerHTML = emptyState("확인 결과를 적을 목표가 없어요", "현이네 목표 2개가 확정되면 작성할 수 있습니다.");
-    return;
-  }
-
-  elements.personalFamilyResultBoard.innerHTML = objectives
-    .map(
-      (objective) => `
-        <article class="family-kr-card" data-objective-id="${objective.id}">
-          <div>
-            <span class="pill">현이네 목표</span>
-            <h3>${escapeHTML(objective.title)}</h3>
-          </div>
-          <div class="kr-slot-list">
-            ${objective.familyKrs
-              .map(
-                (kr, index) => `
-                  <label>
-                    확인 결과 ${index + 1}
-                    <input class="family-kr-input" type="text" maxlength="90" value="${escapeHTML(kr.title)}" data-kr-id="${kr.id}" placeholder="숫자로 확인할 결과" />
-                  </label>
-                `,
-              )
-              .join("")}
-          </div>
-        </article>
-      `,
-    )
-    .join("");
-}
-
-function renderPersonalPickArea(memberId, pool, selections) {
-  elements.personalPoolStatus.textContent = `${pool.length}개`;
-  elements.personalPickedStatus.textContent = `${selections.length}/${PERSONAL_OBJECTIVE_LIMIT}`;
-
-  elements.personalPickPool.innerHTML = pool.length
-    ? pool
-        .map((item) => {
-          const selected = selections.includes(item.key);
-          return `
-            <article class="kr-pool-card ${selected ? "selected" : ""}" data-key="${item.key}">
-              <span class="parent-label">${escapeHTML(item.objective.title)}</span>
-              <h4>${escapeHTML(item.kr.title)}</h4>
-              <button class="${selected ? "secondary-action" : "ghost-action"} personal-toggle-pick" type="button">
-                <svg><use href="${selected ? "#icon-check" : "#icon-plus"}"></use></svg>
-                <span>${selected ? "가져감" : "가져가기"}</span>
-              </button>
-            </article>
-          `;
-        })
-        .join("")
-    : emptyState("확인 결과가 아직 없어요", "먼저 목표별 확인 결과를 작성하세요.");
-
-  elements.personalPickedGoals.innerHTML = selections.length
-    ? selections
-        .map((key) => {
-          const item = pool.find((kr) => kr.key === key);
-          if (!item) return "";
-          return `
-            <article class="picked-card">
-              <span class="parent-label">${escapeHTML(item.objective.title)}</span>
-              <h4>${escapeHTML(item.kr.title)}</h4>
-            </article>
-          `;
-        })
-        .join("")
-    : emptyState("아직 가져간 목표가 없어요", "전체 확인 결과 중 2개를 내 목표로 가져갑니다.");
-}
-
-function renderPersonalPlanBoard(memberId, pool, selections) {
-  if (!selections.length) {
-    elements.personalPlanBoard.innerHTML = emptyState("작성할 내 목표가 없어요", "먼저 확인 결과 2개를 내 목표로 가져가세요.");
-    return;
-  }
-
-  elements.personalPlanBoard.innerHTML = `
-    <div class="personal-build-grid">
-      ${selections
-        .map((key) => {
-          const item = pool.find((kr) => kr.key === key);
-          if (!item) return "";
-          const plan = getPersonalPlan(memberId, key);
-          return `
-            <article class="personal-build-card" data-key="${key}">
-              <span class="parent-label">상위 가족 목표 · ${escapeHTML(item.objective.title)}</span>
-              <h3>${escapeHTML(item.kr.title)}</h3>
-              <div class="personal-kr-slots">
-                ${plan.personalKrs.map((personalKr, index) => renderPersonalKrSlot(key, personalKr, index)).join("")}
-              </div>
-            </article>
-          `;
-        })
-        .join("")}
-    </div>
-  `;
-}
-
-function renderRewardForm(reward) {
-  elements.reward70.value = reward.p70 || "";
-  elements.reward80.value = reward.p80 || "";
-  elements.reward90.value = reward.p90 || "";
-  elements.reward95.value = reward.p95 || "";
-}
-
-function setPersonalReviewProgressControl(progress) {
-  if (!elements.personalReviewProgress || !elements.personalReviewProgressValue) return;
-  const value = clampPercent(Number(progress || 0));
-  elements.personalReviewProgress.value = String(value);
-  elements.personalReviewProgress.style.setProperty("--progress", `${value}%`);
-  elements.personalReviewProgressValue.textContent = `${value}%`;
-}
-
-function renderPersonalReviewForm(memberId, selections) {
-  const previousSelection = elements.personalReviewGoal.value;
-  elements.personalReviewGoal.innerHTML = selections.length
-    ? selections
-        .map((key) => `<option value="${escapeHTML(key)}">${escapeHTML(familyKrLabelByKey(key))}</option>`)
-        .join("")
-    : `<option value="">가져간 목표가 없어요</option>`;
-  if (selections.includes(previousSelection)) {
-    elements.personalReviewGoal.value = previousSelection;
-  }
-  elements.personalReviewGoal.disabled = !selections.length;
-  elements.personalReviewProgress.disabled = !selections.length;
-  const selectedKey = elements.personalReviewGoal.value;
-  setPersonalReviewProgressControl(selectedKey ? personalObjectiveAchievement(memberId, selectedKey) : 0);
-}
-
-function renderReviewProgress(progress) {
-  if (!Number.isFinite(progress)) return "";
-  return `
-    <div class="review-progress">
-      <div>
-        <span>달성률</span>
-        <strong>${progress}%</strong>
-      </div>
-      <div class="progress-bar small">
-        <span style="width: ${progress}%"></span>
-      </div>
-    </div>
-  `;
-}
-
-function renderPersonalWeeklyReviews(memberId) {
-  const reviews = state.weeklyReviews.filter((review) => review.memberId === memberId);
-  if (!reviews.length) {
-    elements.personalWeeklyReviewList.innerHTML = emptyState("아직 내 주간 리뷰가 없어요", "이번 주 실행 내용과 다음 행동을 남겨보세요.");
-    return;
-  }
-
-  elements.personalWeeklyReviewList.innerHTML = reviews
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map((review) => {
-      const date = new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric" }).format(new Date(review.createdAt));
-      return `
-        <article class="review-card">
-          <div class="review-card-head">
-            <strong>${escapeHTML(date)}</strong>
-            <span>${escapeHTML(familyKrLabelByKey(review.targetKey))}</span>
-          </div>
-          ${renderReviewProgress(review.progress)}
-          <p>${escapeHTML(review.body || "달성률을 체크했어요.")}</p>
-          ${review.nextAction ? `<small>다음 행동 · ${escapeHTML(review.nextAction)}</small>` : ""}
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function renderWeeklyReviewForm() {
-  elements.reviewMember.innerHTML = state.members
-    .map((member) => `<option value="${member.id}">${escapeHTML(memberLabel(member))}</option>`)
-    .join("");
-  elements.reviewValue.innerHTML = state.values
-    .map((value) => `<option value="${value.id}">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</option>`)
-    .join("");
-}
-
-function renderCandidates() {
-  const ranked = candidateRanked();
-  const tie = hasTieAtCutoff();
-  const confirmed = confirmedObjectives();
-  elements.voteStatus.textContent = state.objectiveCandidates.length
-    ? `후보 ${state.objectiveCandidates.length}개 · 확정 ${confirmed.length}/${OBJECTIVE_LIMIT}${tie ? " · 동점 재투표 필요" : ""}`
-    : "후보 0개";
-
-  if (!state.objectiveCandidates.length) {
-    elements.candidateGrid.innerHTML = emptyState("아직 후보가 없어요", "각자 후보를 적거나 추천안 3개를 후보로 올려보세요.");
-    return;
-  }
-
-  elements.candidateGrid.innerHTML = ranked
-    .map((candidate, index) => {
-      const proposer = memberById(candidate.proposerId);
-      const value = valueById(candidate.valueId);
-      const selected = state.confirmedObjectiveIds.includes(candidate.id) ? "selected" : "";
-      const rank = index < OBJECTIVE_LIMIT ? `TOP ${index + 1}` : "후보";
-      const isEditing = editingCandidateId === candidate.id;
-      return `
-        <article class="candidate-card ${selected}" data-candidate-id="${candidate.id}">
-          <div class="card-topline">
-            <span class="rank-badge">${rank}</span>
-            <div class="candidate-card-actions">
-              <button class="icon-button edit-candidate" type="button" title="목표 수정" aria-label="목표 수정">
-                <svg><use href="#icon-edit"></use></svg>
-              </button>
-              <button class="icon-button delete-candidate" type="button" title="삭제" aria-label="삭제">
-                <svg><use href="#icon-trash"></use></svg>
-              </button>
-            </div>
-          </div>
-          ${
-            isEditing
-              ? renderCandidateEditForm(candidate)
-              : `
-                <h3>${escapeHTML(candidate.title)}</h3>
-                <p>${escapeHTML(candidate.note || "메모 없음")}</p>
-                <div class="candidate-meta">
-                  <span class="pill">${escapeHTML(memberLabel(proposer))}</span>
-                  <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
-                  <span class="pill">${candidate.votes.length}표</span>
-                </div>
-                <div class="vote-grid">
-                  ${state.members
-                    .map(
-                      (member) => `
-                        <button class="vote-button" type="button" data-member-id="${member.id}" aria-pressed="${candidate.votes.includes(member.id)}">
-                          ${escapeHTML(memberLabel(member))}
-                        </button>
-                      `,
-                    )
-                    .join("")}
-                </div>
-              `
-          }
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function renderFamilyKrs() {
-  const objectives = confirmedObjectives();
-  if (!objectives.length) {
-    elements.familyKrBoard.innerHTML = emptyState("확정된 목표가 필요해요", "1단계에서 투표로 현이네 목표 2개를 먼저 확정하세요.");
-    return;
-  }
-
-  elements.familyKrBoard.innerHTML = objectives
-    .map(
-      (objective) => `
-        <article class="family-kr-card" data-objective-id="${objective.id}">
-          <div>
-            <span class="pill">현이네 목표</span>
-            <h3>${escapeHTML(objective.title)}</h3>
-          </div>
-          <div class="kr-slot-list">
-            ${objective.familyKrs
-              .map(
-                (kr, index) => `
-                  <label>
-                    확인 결과 ${index + 1}
-                    <input class="family-kr-input" type="text" maxlength="90" value="${escapeHTML(kr.title)}" data-kr-id="${kr.id}" placeholder="숫자로 확인할 결과" />
-                  </label>
-                `,
-              )
-              .join("")}
-          </div>
-        </article>
-      `,
-    )
-    .join("");
-}
-
-function renderPersonalPick() {
-  const member = memberById(activePersonalMemberId);
-  const pool = familyKrPool();
-  const selections = personalSelections(activePersonalMemberId);
-  elements.krPoolStatus.textContent = `${pool.length}개`;
-  elements.pickedTitle.textContent = `${memberLabel(member)}의 목표`;
-  elements.pickedStatus.textContent = `${selections.length}/${PERSONAL_OBJECTIVE_LIMIT}`;
-
-  elements.krPool.innerHTML = pool.length
-    ? pool
-        .map((item) => {
-          const selected = selections.includes(item.key);
-          return `
-            <article class="kr-pool-card ${selected ? "selected" : ""}" data-key="${item.key}">
-              <span class="parent-label">${escapeHTML(item.objective.title)}</span>
-              <h4>${escapeHTML(item.kr.title)}</h4>
-              <button class="${selected ? "secondary-action" : "ghost-action"} toggle-pick" type="button">
-                <svg><use href="${selected ? "#icon-check" : "#icon-plus"}"></use></svg>
-                <span>${selected ? "가져감" : "가져가기"}</span>
-              </button>
-            </article>
-          `;
-        })
-        .join("")
-    : emptyState("확인 결과가 아직 없어요", "2단계에서 확인 결과를 먼저 작성하세요.");
-
-  elements.pickedList.innerHTML = selections.length
-    ? selections
-        .map((key) => {
-          const item = pool.find((kr) => kr.key === key);
-          if (!item) return "";
-          return `
-            <article class="picked-card">
-              <span class="parent-label">${escapeHTML(item.objective.title)}</span>
-              <h4>${escapeHTML(item.kr.title)}</h4>
-            </article>
-          `;
-        })
-        .join("")
-    : emptyState("선택한 내 목표가 없어요", `전체 확인 결과 풀에서 ${PERSONAL_OBJECTIVE_LIMIT}개까지 가져갈 수 있습니다.`);
-}
-
-function renderPersonalBuilder() {
-  const member = memberById(activePersonalMemberId);
-  const pool = familyKrPool();
-  const selections = personalSelections(activePersonalMemberId);
-
-  if (!selections.length) {
-    elements.personalBuilder.innerHTML = emptyState("작성할 내 목표가 없어요", "3단계에서 확인 결과를 먼저 가져가세요.");
-    return;
-  }
-
-  elements.personalBuilder.innerHTML = `
-    <div class="builder-heading">${escapeHTML(memberLabel(member))}의 확인 결과 · 핵심 행동</div>
-    <div class="personal-build-grid">
-      ${selections
-        .map((key) => {
-          const item = pool.find((kr) => kr.key === key);
-          if (!item) return "";
-          const plan = getPersonalPlan(activePersonalMemberId, key);
-          return `
-            <article class="personal-build-card" data-key="${key}">
-              <span class="parent-label">상위 가족 목표 · ${escapeHTML(item.objective.title)}</span>
-              <h3>${escapeHTML(item.kr.title)}</h3>
-              <div class="personal-kr-slots">
-                ${plan.personalKrs.map((personalKr, index) => renderPersonalKrSlot(key, personalKr, index)).join("")}
-              </div>
-            </article>
-          `;
-        })
-        .join("")}
-    </div>
-  `;
-}
-
-function renderPersonalKrSlot(key, personalKr, index) {
-  return `
-    <div class="personal-kr-slot" data-key="${key}" data-personal-kr-id="${personalKr.id}">
-      <label>
-        내 결과 ${index + 1}
-        <input class="personal-kr-input" type="text" maxlength="90" value="${escapeHTML(personalKr.title)}" placeholder="내가 만들 확인 가능한 결과" />
-      </label>
-      <div class="kr-progress-control">
-        <div>
-          <span>달성률</span>
-          <strong>${personalKr.progress}%</strong>
-        </div>
-        <input class="range-input personal-kr-progress" type="range" min="0" max="100" step="5" value="${personalKr.progress}" style="--progress: ${personalKr.progress}%" aria-label="내 결과 ${index + 1} 달성률" />
-      </div>
-      <label>
-        핵심 행동 ${INITIATIVE_LIMIT}개 이내
-        <textarea class="initiative-input" rows="3" maxlength="220" placeholder="한 줄에 하나씩 입력">${escapeHTML(personalKr.initiatives.join("\n"))}</textarea>
-      </label>
-    </div>
-  `;
-}
-
-function renderConnectionMap() {
-  const objectives = confirmedObjectives();
-  if (!objectives.length) {
-    elements.connectionMap.innerHTML = emptyState("연결 전입니다", "현이네 목표가 확정되면 연결 지도가 생깁니다.");
-    return;
-  }
-
-  elements.connectionMap.innerHTML = objectives
-    .map(
-      (objective) => `
-        <article class="map-objective">
-          <h3>${escapeHTML(objective.title)}</h3>
-          <div class="map-kr-list">
-            ${objective.familyKrs
-              .filter((kr) => kr.title.trim())
-              .map((kr) => renderMapKr(objective, kr))
-              .join("")}
-          </div>
-        </article>
-      `,
-    )
-    .join("");
-}
-
-function renderMapKr(objective, kr) {
-  const key = familyKrKey(objective.id, kr.id);
-  const takers = state.members.filter((member) => personalSelections(member.id).includes(key));
-  return `
-    <div class="map-kr">
-      <strong>${escapeHTML(kr.title)}</strong>
-      <div class="map-people">
-        ${
-          takers.length
-            ? takers.map((member) => renderMapPerson(member, key)).join("")
-            : `<span class="muted">아직 가져간 사람이 없음</span>`
-        }
-      </div>
-    </div>
-  `;
-}
-
-function renderMapPerson(member, key) {
-  const plan = getPersonalPlan(member.id, key);
-  const personalKrCount = plan.personalKrs.filter((kr) => kr.title.trim()).length;
-  const initiativeCount = plan.personalKrs.reduce((sum, kr) => sum + kr.initiatives.filter(Boolean).length, 0);
-  const achievement = personalObjectiveAchievement(member.id, key);
-  return `
-    <span class="person-node">
-      ${escapeHTML(memberLabel(member))} · 결과 ${personalKrCount} · 행동 ${initiativeCount} · ${achievement}%
-    </span>
-  `;
-}
-
-function renderWeeklyReviews() {
-  if (!state.weeklyReviews.length) {
-    elements.weeklyReviewList.innerHTML = emptyState("아직 주간 리뷰가 없어요", "가족회의가 끝나면 이번 주 배운 점과 다음 행동을 남겨보세요.");
-    return;
-  }
-
-  elements.weeklyReviewList.innerHTML = [...state.weeklyReviews]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 6)
-    .map((review) => {
-      const member = memberById(review.memberId);
-      const value = valueById(review.valueId);
-      const date = new Intl.DateTimeFormat("ko-KR", {
-        month: "short",
-        day: "numeric",
-      }).format(new Date(review.createdAt));
-      return `
-        <article class="review-card">
-          <div class="review-card-head">
-            <strong>${escapeHTML(memberLabel(member))}</strong>
-            <span>${escapeHTML(date)}</span>
-          </div>
-          <span class="pill">${escapeHTML(value.ko)} · ${escapeHTML(value.title)}</span>
-          ${review.targetKey ? `<small>${escapeHTML(familyKrLabelByKey(review.targetKey))}</small>` : ""}
-          ${renderReviewProgress(review.progress)}
-          <p>${escapeHTML(review.body || "달성률을 체크했어요.")}</p>
-          ${review.nextAction ? `<small>다음 액션 · ${escapeHTML(review.nextAction)}</small>` : ""}
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function renderAdminRewards() {
-  elements.adminRewardBoard.innerHTML = state.members
-    .map((member) => {
-      const reward = getRewardWish(member.id);
-      return `
-        <article class="reward-card">
-          <strong>${escapeHTML(memberDisplayName(member))}</strong>
-          <div class="reward-grid">
-            <span>70% · 3만원</span><p>${escapeHTML(reward.p70 || "미입력")}</p>
-            <span>80% · 5만원</span><p>${escapeHTML(reward.p80 || "미입력")}</p>
-            <span>90% · 7만원</span><p>${escapeHTML(reward.p90 || "미입력")}</p>
-            <span>95% · 10만원</span><p>${escapeHTML(reward.p95 || "미입력")}</p>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function renderProgressOverview() {
-  const overall = overallSetupProgress();
-  elements.overallSetupProgress.textContent = `${overall}%`;
-  elements.overallSetupBar.style.width = `${overall}%`;
-  elements.stepProgressGrid.innerHTML = setupProgressItems()
-    .map(
-      (item) => `
-        <article class="step-progress-card">
-          <div>
-            <strong>${escapeHTML(item.title)}</strong>
-            <span>${escapeHTML(item.detail)}</span>
-          </div>
-          <div class="progress-bar small">
-            <span style="width: ${item.progress}%"></span>
-          </div>
-        </article>
-      `,
-    )
-    .join("");
-}
-
-function renderAchievementOverview() {
-  const overall = overallAchievementProgress();
-  const weight = state.members.length ? Math.round(100 / state.members.length) : 0;
-  elements.overallAchievementProgress.textContent = `${overall}%`;
-  elements.overallAchievementBar.style.width = `${overall}%`;
-  elements.achievementCaption.textContent = `개인별 1/n 가중치로 합산 · 현재 1인 ${weight}%`;
-  elements.memberAchievementGrid.innerHTML = state.members
-    .map((member) => {
-      const progress = memberAchievement(member.id);
-      return `
-        <article class="member-progress-card">
-          <div>
-            <strong>${escapeHTML(memberLabel(member))}</strong>
-            <span>${progress}%</span>
-          </div>
-          <div class="progress-bar small">
-            <span style="width: ${progress}%"></span>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function renderMetrics() {
-  const confirmed = confirmedObjectives();
-  const pool = familyKrPool();
-  const personalObjectiveCount = state.members.reduce((sum, member) => sum + personalSelections(member.id).length, 0);
-  const personalPlanCount = filledPersonalKrCount() + filledInitiativeCount();
-
-  elements.confirmedObjectiveCount.textContent = confirmed.length;
-  elements.familyKrCount.textContent = pool.length;
-  elements.personalObjectiveCount.textContent = personalObjectiveCount;
-  elements.personalPlanCount.textContent = personalPlanCount;
-  renderAchievementOverview();
-  renderProgressOverview();
-}
-
 function emptyState(title, text) {
   return `
     <div class="empty-state">
-      <div>
-        <strong>${escapeHTML(title)}</strong>
-        <p>${escapeHTML(text)}</p>
-      </div>
+      <strong>${escapeHTML(title)}</strong>
+      <p>${escapeHTML(text)}</p>
     </div>
   `;
 }
 
-function addCandidate(candidate) {
-  state.objectiveCandidates.push({
-    id: candidate.id || uid(),
-    proposerId: candidate.proposerId || activeProposalMemberId,
-    title: candidate.title.trim(),
-    valueId: candidate.valueId,
-    note: candidate.note || "",
-    votes: candidate.votes || [],
-    familyKrs: normalizeFamilyKrs(candidate.familyKrs),
-  });
-  saveState();
-  render();
-}
-
-function saveCandidateEdit(form) {
-  const candidate = state.objectiveCandidates.find((item) => item.id === form.dataset.editCandidateId);
-  if (!candidate) return;
-
-  const title = form.querySelector(".candidate-edit-title")?.value.trim();
-  if (!title) {
-    showToast("목표 후보를 입력해주세요.");
-    return;
-  }
-
-  candidate.title = title;
-  candidate.valueId = form.querySelector(".candidate-edit-value")?.value || candidate.valueId;
-  candidate.note = form.querySelector(".candidate-edit-note")?.value.trim() || "";
-  editingCandidateId = null;
-  saveState();
-  render();
-  showToast("목표 후보를 수정했어요.");
-}
-
-function confirmTopObjectives() {
-  if (state.objectiveCandidates.length < OBJECTIVE_LIMIT) {
-    showToast("목표 후보가 2개 이상 필요해요.");
-    return;
-  }
-
-  if (hasTieAtCutoff()) {
-    showToast("2위와 동점인 후보가 있어요. 재투표 후 확정하세요.");
-    return;
-  }
-
-  state.confirmedObjectiveIds = candidateRanked()
-    .slice(0, OBJECTIVE_LIMIT)
-    .map((candidate) => candidate.id);
-  prunePersonalSelections();
-  saveState();
-  render();
-  showToast("분기 현이네 목표 2개를 확정했어요.");
-}
-
-function prunePersonalSelections() {
-  const validKeys = new Set(familyKrPool().map((item) => item.key));
-  state.members.forEach((member) => {
-    state.personalSelections[member.id] = personalSelections(member.id).filter((key) => validKeys.has(key));
-  });
-}
-
 function showToast(message) {
-  clearTimeout(toastTimer);
+  window.clearTimeout(toastTimer);
   elements.toast.textContent = message;
   elements.toast.classList.add("show");
-  toastTimer = setTimeout(() => {
-    elements.toast.classList.remove("show");
-  }, 2000);
+  toastTimer = window.setTimeout(() => elements.toast.classList.remove("show"), 2200);
 }
-
-function updateFamilyKrInput(event) {
-  const input = event.target.closest(".family-kr-input");
-  if (!input) return false;
-  const card = input.closest(".family-kr-card");
-  const objective = state.objectiveCandidates.find((candidate) => candidate.id === card.dataset.objectiveId);
-  const kr = objective?.familyKrs.find((item) => item.id === input.dataset.krId);
-  if (!kr) return false;
-  kr.title = input.value;
-  quietSaveState();
-  return true;
-}
-
-function updatePersonalPlanInput(event, memberId) {
-  const slot = event.target.closest(".personal-kr-slot");
-  if (!slot) return false;
-  const plan = getPersonalPlan(memberId, slot.dataset.key);
-  const kr = plan.personalKrs.find((item) => item.id === slot.dataset.personalKrId);
-  if (!kr) return false;
-
-  const titleInput = event.target.closest(".personal-kr-input");
-  const initiativeInput = event.target.closest(".initiative-input");
-  const progressInput = event.target.closest(".personal-kr-progress");
-  if (titleInput) {
-    kr.title = titleInput.value;
-    quietSaveState();
-    return true;
-  }
-  if (initiativeInput) {
-    const lines = initiativeInput.value
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .slice(0, INITIATIVE_LIMIT);
-    kr.initiatives = lines;
-    quietSaveState();
-    return true;
-  }
-  if (progressInput) {
-    kr.progress = clampPercent(Number(progressInput.value));
-    progressInput.style.setProperty("--progress", `${kr.progress}%`);
-    const progressValue = slot.querySelector(".kr-progress-control strong");
-    if (progressValue) {
-      progressValue.textContent = `${kr.progress}%`;
-    }
-    saveState();
-    renderCurrentPersonalProgress();
-    renderConnectionMap();
-    renderMetrics();
-    return true;
-  }
-  return false;
-}
-
-elements.cycleName.addEventListener("input", () => {
-  state.cycleName = elements.cycleName.value.trim() || currentQuarterLabel();
-  saveState();
-});
-
-elements.cycleStartDate.addEventListener("input", () => {
-  state.cycleStartDate = elements.cycleStartDate.value || defaultCycleStartDate();
-  saveState();
-  renderPersonalApp();
-});
 
 elements.loginForm.addEventListener("submit", (event) => {
   event.preventDefault();
   loginMember(elements.loginId.value, elements.loginPassword.value);
 });
 
-elements.showPersonalView.addEventListener("click", () => setView("personal"));
-elements.showAdminView.addEventListener("click", () => setView("admin"));
-elements.adminLogoutButton.addEventListener("click", logout);
-elements.personalLogoutButton.addEventListener("click", logout);
-elements.personalPrevStep.addEventListener("click", () => setPersonalStep(currentPersonalStep - 1));
-elements.personalNextStep.addEventListener("click", () => {
-  if (currentPersonalStep === PERSONAL_STEP_TOTAL) {
-    showToast("이번 분기 준비 흐름을 모두 확인했어요.");
+elements.logoutButton.addEventListener("click", logout);
+
+document.addEventListener("click", (event) => {
+  const viewButton = event.target.closest("[data-view]");
+  if (viewButton) {
+    setView(viewButton.dataset.view);
     return;
   }
-  setPersonalStep(currentPersonalStep + 1);
-});
 
-elements.proposalForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const title = elements.proposalTitle.value.trim();
-  if (!title) return;
-  addCandidate({
-    proposerId: activeProposalMemberId,
-    title,
-    valueId: elements.proposalValue.value,
-    note: elements.proposalNote.value.trim(),
-  });
-  elements.proposalTitle.value = "";
-  elements.proposalNote.value = "";
-  showToast("목표 후보를 올렸어요.");
-});
+  const recipientButton = event.target.closest("[data-recipient-id]");
+  if (recipientButton) {
+    activeRecipientId = recipientButton.dataset.recipientId;
+    renderRecipientTabs();
+    renderFeedbackEditor();
+    return;
+  }
 
-elements.personalProposalForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const member = currentMember();
-  const title = elements.personalProposalTitle.value.trim();
-  if (!member || !title) return;
-  addCandidate({
-    proposerId: member.id,
-    title,
-    valueId: elements.personalProposalValue.value,
-    note: elements.personalProposalNote.value.trim(),
-  });
-  elements.personalProposalTitle.value = "";
-  elements.personalProposalNote.value = "";
-  showToast("내 목표 후보를 올렸어요.");
+  const deleteButton = event.target.closest(".delete-feedback");
+  if (deleteButton) {
+    deleteFeedback(deleteButton.dataset.feedbackId);
+    return;
+  }
+
+  const removeCommitmentButton = event.target.closest(".remove-commitment");
+  if (removeCommitmentButton) {
+    const commitment = state.commitments.find((item) => item.id === removeCommitmentButton.dataset.commitmentId);
+    if (commitment) toggleCommitment(commitment.sourceFeedbackId, false);
+    return;
+  }
+
+  const downloadButton = event.target.closest(".download-archive");
+  if (downloadButton) {
+    const archive = archives.find((item) => item.id === downloadButton.dataset.archiveId);
+    if (!archive) return;
+    const blob = new Blob([JSON.stringify(archive.data, null, 2)], { type: "application/json" });
+    const anchor = document.createElement("a");
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = `${archive.cycle_name.replace(/[^\w가-힣-]+/g, "-")}.json`;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(anchor.href);
+  }
 });
 
 document.addEventListener("submit", (event) => {
-  const editForm = event.target.closest(".candidate-edit-form");
-  if (!editForm) return;
+  const form = event.target.closest(".feedback-form");
+  if (!form) return;
   event.preventDefault();
-  saveCandidateEdit(editForm);
+  const textarea = form.querySelector("textarea");
+  const text = textarea.value.trim();
+  if (!text) return;
+  addFeedback(form.dataset.category, text);
 });
 
-document.addEventListener("click", (event) => {
-  const editButton = event.target.closest(".edit-candidate");
-  if (editButton) {
-    const card = editButton.closest(".candidate-card");
-    editingCandidateId = card?.dataset.candidateId || null;
-    render();
-    return;
-  }
-
-  const cancelEditButton = event.target.closest(".cancel-candidate-edit");
-  if (cancelEditButton) {
-    editingCandidateId = null;
-    render();
-    return;
-  }
-
-  const memberTab = event.target.closest("button[data-member-id][data-tab-type]");
-  if (memberTab) {
-    if (memberTab.dataset.tabType === "proposal") {
-      activeProposalMemberId = memberTab.dataset.memberId;
-      visibleRecommendationMemberId = null;
-    } else {
-      activePersonalMemberId = memberTab.dataset.memberId;
-    }
-    render();
-    return;
-  }
-
-  const recommendation = event.target.closest(".add-recommendation");
-  if (recommendation) {
-    addCandidate({
-      proposerId: activeProposalMemberId,
-      title: recommendation.dataset.title,
-      valueId: recommendation.dataset.valueId,
-      note: recommendation.dataset.note,
-    });
-    showToast("추천안을 후보로 올렸어요.");
-    return;
-  }
-
-  const personalRecommendation = event.target.closest(".add-personal-recommendation");
-  if (personalRecommendation) {
-    const member = currentMember();
-    if (!member) return;
-    addCandidate({
-      proposerId: member.id,
-      title: personalRecommendation.dataset.title,
-      valueId: personalRecommendation.dataset.valueId,
-      note: personalRecommendation.dataset.note,
-    });
-    showToast("추천안을 후보로 올렸어요.");
-    return;
-  }
-
-  const personalVoteButton = event.target.closest(".personal-vote-button");
-  if (personalVoteButton) {
-    const member = currentMember();
-    const card = personalVoteButton.closest("[data-personal-vote-candidate-id]");
-    const candidate = state.objectiveCandidates.find((item) => item.id === card?.dataset.personalVoteCandidateId);
-    if (!member || !candidate) return;
-    candidate.votes = candidate.votes.includes(member.id)
-      ? candidate.votes.filter((id) => id !== member.id)
-      : [...candidate.votes, member.id];
-    saveState();
-    render();
-    return;
-  }
-
-  const candidateCard = event.target.closest(".candidate-card");
-  if (candidateCard) {
-    const candidate = state.objectiveCandidates.find((item) => item.id === candidateCard.dataset.candidateId);
-    if (!candidate) return;
-
-    const deleteButton = event.target.closest(".delete-candidate");
-    if (deleteButton) {
-      state.objectiveCandidates = state.objectiveCandidates.filter((item) => item.id !== candidate.id);
-      state.confirmedObjectiveIds = state.confirmedObjectiveIds.filter((id) => id !== candidate.id);
-      if (editingCandidateId === candidate.id) {
-        editingCandidateId = null;
-      }
-      prunePersonalSelections();
-      saveState();
-      render();
-      showToast("후보를 삭제했어요.");
-      return;
-    }
-
-    const voteButton = event.target.closest(".vote-button");
-    if (voteButton) {
-      const memberId = voteButton.dataset.memberId;
-      candidate.votes = candidate.votes.includes(memberId)
-        ? candidate.votes.filter((id) => id !== memberId)
-        : [...candidate.votes, memberId];
-      saveState();
-      render();
-    }
-    return;
-  }
-
-  const personalPickButton = event.target.closest(".personal-toggle-pick");
-  if (personalPickButton) {
-    const member = currentMember();
-    const card = personalPickButton.closest(".kr-pool-card");
-    const key = card.dataset.key;
-    if (!member) return;
-    const selections = personalSelections(member.id);
-    if (selections.includes(key)) {
-      state.personalSelections[member.id] = selections.filter((item) => item !== key);
-    } else {
-      if (selections.length >= PERSONAL_OBJECTIVE_LIMIT) {
-        showToast(`내 목표는 ${PERSONAL_OBJECTIVE_LIMIT}개까지만 가져갈 수 있어요.`);
-        return;
-      }
-      state.personalSelections[member.id] = [...selections, key];
-      getPersonalPlan(member.id, key);
-    }
-    saveState();
-    render();
-    return;
-  }
-
-  const pickButton = event.target.closest(".toggle-pick");
-  if (pickButton) {
-    const card = pickButton.closest(".kr-pool-card");
-    const key = card.dataset.key;
-    const selections = personalSelections(activePersonalMemberId);
-    if (selections.includes(key)) {
-      state.personalSelections[activePersonalMemberId] = selections.filter((item) => item !== key);
-    } else {
-      if (selections.length >= PERSONAL_OBJECTIVE_LIMIT) {
-        showToast(`내 목표는 ${PERSONAL_OBJECTIVE_LIMIT}개까지만 가져갈 수 있어요.`);
-        return;
-      }
-      state.personalSelections[activePersonalMemberId] = [...selections, key];
-      getPersonalPlan(activePersonalMemberId, key);
-    }
-    saveState();
-    render();
+document.addEventListener("change", (event) => {
+  if (event.target.matches(".toggle-commitment")) {
+    toggleCommitment(event.target.dataset.feedbackId, event.target.checked);
   }
 });
 
-elements.confirmObjectives.addEventListener("click", confirmTopObjectives);
-elements.loadRecommendations.addEventListener("click", () => {
-  visibleRecommendationMemberId = activeProposalMemberId;
-  renderRecommendations();
-  showToast(`${memberLabel(memberById(activeProposalMemberId))} 추천안 3개를 제시했어요.`);
-});
+elements.commitmentList.addEventListener("input", updateCommitmentFromEvent);
 
-elements.personalLoadRecommendations.addEventListener("click", () => {
-  const member = currentMember();
-  if (!member) return;
-  visibleRecommendationMemberId = member.id;
-  renderPersonalRecommendations(member.id);
-  showToast(`${memberLabel(member)} 추천안 3개를 제시했어요.`);
-});
-
-elements.weeklyReviewForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const body = elements.reviewBody.value.trim();
-  const nextAction = elements.reviewNextAction.value.trim();
-  if (!body && !nextAction) {
-    showToast("리뷰나 다음 액션 중 하나는 입력해주세요.");
-    return;
-  }
-
-  state.weeklyReviews.push({
-    id: uid(),
-    createdAt: new Date().toISOString(),
-    memberId: elements.reviewMember.value,
-    valueId: elements.reviewValue.value,
-    body,
-    nextAction,
-  });
-  elements.reviewBody.value = "";
-  elements.reviewNextAction.value = "";
-  saveState();
-  renderWeeklyReviews();
-  renderMetrics();
-  showToast("주간 리뷰를 저장했어요.");
-});
-
-elements.familyKrBoard.addEventListener("input", (event) => {
-  updateFamilyKrInput(event);
-});
-
-elements.personalFamilyResultBoard.addEventListener("input", updateFamilyKrInput);
-
-elements.familyKrBoard.addEventListener("focusout", (event) => {
-  if (event.target.closest(".family-kr-input")) {
-    flushQuietSave(true);
+elements.archiveCycleButton.addEventListener("click", async () => {
+  if (!isParent(currentMemberId)) return;
+  try {
+    await archiveCurrentCycle();
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("기록 보관 실패", "error");
+    showToast("기록을 보관하지 못했어요.");
   }
 });
 
-elements.personalFamilyResultBoard.addEventListener("focusout", (event) => {
-  if (event.target.closest(".family-kr-input")) {
-    flushQuietSave(true);
-  }
-});
+elements.startNextCycleButton.addEventListener("click", startNextCycle);
 
-elements.personalBuilder.addEventListener("input", (event) => {
-  updatePersonalPlanInput(event, activePersonalMemberId);
-});
-
-elements.personalPlanBoard.addEventListener("input", (event) => {
-  const member = currentMember();
-  if (!member) return;
-  updatePersonalPlanInput(event, member.id);
-});
-
-elements.personalBuilder.addEventListener("focusout", (event) => {
-  if (event.target.closest(".personal-kr-input, .initiative-input")) {
-    flushQuietSave();
-  }
-});
-
-elements.personalPlanBoard.addEventListener("focusout", (event) => {
-  if (event.target.closest(".personal-kr-input, .initiative-input")) {
-    flushQuietSave();
-  }
-});
-
-elements.rewardForm.addEventListener("input", () => {
-  const member = currentMember();
-  if (!member) return;
-  state.rewardWishes[member.id] = {
-    p70: elements.reward70.value.trim(),
-    p80: elements.reward80.value.trim(),
-    p90: elements.reward90.value.trim(),
-    p95: elements.reward95.value.trim(),
-  };
-  saveState();
-  renderAdminRewards();
-});
-
-elements.personalReviewGoal.addEventListener("change", () => {
-  const member = currentMember();
-  const targetKey = elements.personalReviewGoal.value;
-  setPersonalReviewProgressControl(member && targetKey ? personalObjectiveAchievement(member.id, targetKey) : 0);
-});
-
-elements.personalReviewProgress.addEventListener("input", () => {
-  setPersonalReviewProgressControl(elements.personalReviewProgress.value);
-});
-
-elements.personalWeeklyReviewForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const member = currentMember();
-  const targetKey = elements.personalReviewGoal.value;
-  const body = elements.personalReviewBody.value.trim();
-  const nextAction = elements.personalReviewNextAction.value.trim();
-  const progress = clampPercent(Number(elements.personalReviewProgress.value || 0));
-  if (!member || !targetKey) {
-    showToast("먼저 내 목표 2개를 가져가세요.");
-    return;
-  }
-
-  state.weeklyReviews.push({
-    id: uid(),
-    createdAt: new Date().toISOString(),
-    memberId: member.id,
-    valueId: "integrity",
-    targetKey,
-    progress,
-    body,
-    nextAction,
-  });
-  elements.personalReviewBody.value = "";
-  elements.personalReviewNextAction.value = "";
-  setPersonalReviewProgressControl(progress);
-  saveState();
-  renderPersonalReviewForm(member.id, personalSelections(member.id));
-  renderPersonalWeeklyReviews(member.id);
-  renderWeeklyReviews();
-  renderCurrentPersonalProgress();
-  renderConnectionMap();
-  renderMetrics();
-  showToast("주간 달성률을 분기 목표에 반영했어요.");
-});
-
-elements.exportButton.addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-  const anchor = document.createElement("a");
-  anchor.href = URL.createObjectURL(blob);
-  anchor.download = `${state.cycleName.replace(/[^\w가-힣-]+/g, "-") || "family-okr"}.json`;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(anchor.href);
-  showToast("파일로 내보냈어요.");
-});
-
-elements.importInput.addEventListener("change", () => {
-  const file = elements.importInput.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const parsed = JSON.parse(reader.result);
-      if (!Array.isArray(parsed.objectiveCandidates)) throw new Error("invalid");
-      state = normalizeState(parsed);
-      activeProposalMemberId = state.members[0].id;
-      activePersonalMemberId = state.members[0].id;
-      saveState();
-      render();
-      showToast("가져오기를 마쳤어요.");
-    } catch {
-      showToast("가져올 수 없는 파일이에요.");
-    } finally {
-      elements.importInput.value = "";
-    }
-  };
-  reader.readAsText(file);
-});
-
-elements.resetButton.addEventListener("click", () => {
-  if (!window.confirm("현재 작성 내용을 모두 초기화할까요?")) return;
-  state = seedState();
-  activeProposalMemberId = state.members[0].id;
-  activePersonalMemberId = state.members[0].id;
-  saveState();
-  render();
-  showToast("초기화했어요.");
-});
-
-setupShareNotice();
-setupMobileStageDetails();
 render();
 initRemoteSync();
