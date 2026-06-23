@@ -1462,8 +1462,12 @@ input[type="range"]::-webkit-slider-thumb {
     grid-template-columns: 1fr;
   }
 
-  .mission-band img {
-    display: none;
+  .mission-band .mission-emblem {
+    display: block;
+    width: min(100%, 280px);
+    height: auto;
+    aspect-ratio: 4 / 3;
+    justify-self: center;
   }
 
   .view-tabs button {
