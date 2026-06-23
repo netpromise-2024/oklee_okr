@@ -1458,22 +1458,226 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 @media (max-width: 460px) {
+  .login-panel {
+    grid-template-rows: 210px auto auto;
+  }
+
+  .login-photo {
+    min-height: 210px;
+  }
+
+  .login-photo img {
+    height: 210px;
+    min-height: 210px;
+  }
+
+  .login-copy {
+    gap: 10px;
+    padding: 20px 16px 14px;
+  }
+
+  .login-copy h1 {
+    font-size: 1.55rem;
+  }
+
+  .login-copy > p:not(.eyebrow) {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .login-form {
+    padding: 0 16px 20px;
+  }
+
+  .app-shell {
+    padding: 8px 8px 28px;
+  }
+
+  .topbar {
+    min-height: 58px;
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    font-size: 0.7rem;
+  }
+
+  .brand .eyebrow {
+    font-size: 0.61rem;
+  }
+
+  .brand h1 {
+    font-size: 0.92rem;
+  }
+
+  .topbar-actions {
+    gap: 2px;
+  }
+
+  .sync-status {
+    min-height: 30px;
+    max-width: 92px;
+    padding: 0 7px;
+    font-size: 0.65rem;
+  }
+
+  .topbar .text-button {
+    min-height: 30px;
+    padding: 0 5px;
+    font-size: 0.72rem;
+  }
+
+  .workspace {
+    gap: 10px;
+  }
+
   .mission-band {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) 96px;
+    gap: 10px;
+    padding: 12px;
+    border-left-width: 6px;
+  }
+
+  .mission-band > div:first-child {
+    gap: 5px;
+  }
+
+  .mission-band h2 {
+    font-size: 1.08rem;
+    line-height: 1.3;
+    word-break: keep-all;
+  }
+
+  .mission-band > div:first-child > p:last-child {
+    font-size: 0.7rem;
+    line-height: 1.4;
   }
 
   .mission-band .mission-emblem {
     display: block;
-    width: min(100%, 280px);
-    height: auto;
+    width: 96px;
+    height: 72px;
     aspect-ratio: 4 / 3;
     justify-self: center;
+    align-self: center;
+  }
+
+  .my-progress {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 10px;
+    padding: 10px 11px;
+  }
+
+  .my-progress strong {
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+
+  .my-progress .progress-track {
+    grid-column: 1 / -1;
+    height: 7px;
+  }
+
+  .value-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .value-band article {
+    min-height: 0;
+    gap: 3px;
+    padding: 10px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .value-band article:nth-child(even) {
+    border-right: 0;
+  }
+
+  .value-band article:last-child {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .value-band strong {
+    font-size: 0.82rem;
+  }
+
+  .value-band span {
+    font-size: 0.75rem;
+  }
+
+  .value-band p {
+    font-size: 0.68rem;
+  }
+
+  .view-tabs {
+    display: flex;
+    gap: 3px;
+    overflow-x: auto;
+    padding: 4px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .view-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .view-tabs button {
-    min-height: 50px;
-    padding: 6px 8px;
-    font-size: 0.78rem;
+    min-width: 112px;
+    min-height: 44px;
+    flex: 0 0 auto;
+    padding: 5px 8px;
+    scroll-snap-align: start;
+    font-size: 0.75rem;
+  }
+
+  .view-panel {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .section-heading {
+    gap: 8px;
+  }
+
+  .section-heading h2 {
+    margin-bottom: 4px;
+    font-size: 1.18rem;
+    line-height: 1.35;
+  }
+
+  .section-heading > div > p:last-child {
+    font-size: 0.77rem;
+  }
+
+  .self-intro {
+    padding: 11px 12px;
+  }
+
+  .self-reflection-column,
+  .feedback-column {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .recipient-tabs button {
+    min-width: 118px;
+    min-height: 70px;
+  }
+
+  .recipient-self-context {
+    padding: 12px;
   }
 
   .feedback-item {
