@@ -18,23 +18,11 @@ const SELF_REFLECTION_META = {
     placeholder: "예: 피곤해도 가족에게 다정하게 말하려고 노력했어요.",
     tone: "positive",
   },
-  praise: {
-    label: "내가 스스로 칭찬해주고 싶은 모습은 무엇인가요?",
-    description: "내가 나에게 말해주고 싶은 고마운 모습을 적어보세요.",
-    placeholder: "예: 동생이 장난쳐도 바로 화내지 않으려고 참았어요.",
-    tone: "positive",
-  },
   heart: {
     label: "가족이 알아주었으면 하는 내 마음은 무엇인가요?",
     description: "가족을 위해 애쓴 마음이 너무 당연하게만 지나가지 않았으면 하는 부분을 적어보세요.",
     placeholder: "예: 나도 잘하고 싶은 마음이 있는데 가끔 표현이 서툴러요.",
     tone: "recognition",
-  },
-  hard: {
-    label: "요즘 내가 조금 힘들었던 점은 무엇인가요?",
-    description: "말하기 어려웠던 마음도 조심스럽게 적어볼 수 있어요.",
-    placeholder: "예: 내 말을 끝까지 들어주지 않을 때 조금 속상했어요.",
-    tone: "improve",
   },
 };
 
