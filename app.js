@@ -175,9 +175,12 @@ function normalizeState(candidate) {
   if (!candidate || !Array.isArray(candidate.feedbacks)) return seedState();
   const cycleStartDate = candidate.cycleStartDate || defaultCycleStartDate();
   const cycleId = candidate.cycleId || cycleIdFromDate(cycleStartDate);
+  const cycleName = candidate.cycleName && !candidate.cycleName.includes("관계 점검")
+    ? candidate.cycleName
+    : cycleNameFromDate(cycleStartDate);
   return {
     cycleId,
-    cycleName: candidate.cycleName || cycleNameFromDate(cycleStartDate),
+    cycleName,
     cycleStartDate,
     mission: candidate.mission || "사회에 기여하는 사람이 되자.",
     members: normalizeMembers(candidate.members),
