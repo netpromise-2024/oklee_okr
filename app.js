@@ -632,7 +632,7 @@ function renderSelfReflections() {
                       `,
                     )
                     .join("")
-                : emptyState("아직 적은 내용이 없어요", "한 문장만 적어도 괜찮아요.")
+                : ""
             }
           </div>
         </section>
