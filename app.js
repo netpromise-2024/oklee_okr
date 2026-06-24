@@ -1,6 +1,7 @@
 const STORAGE_KEY = "oklee-family-relationship-v1";
 const SESSION_KEY = "oklee-family-relationship-session-v1";
 const VIEW_KEY = "oklee-family-relationship-view-v2";
+const WELCOME_KEY = "oklee-family-heart-note-welcome-v1";
 const SUPABASE_URL = "https://laquzdfgwtxkcuxzvesg.supabase.co";
 const SUPABASE_KEY = "sb_publishable_afRB9ccJ23fNekWd8m3ibA_uZiYUTmo";
 const SUPABASE_STATE_TABLE = "family_relationship_state";
@@ -11,40 +12,68 @@ const FEEDBACK_LIMIT = 5;
 const SELF_REFLECTION_LIMIT = 5;
 
 const SELF_REFLECTION_META = {
-  strength: {
-    label: "내가 스스로 잘하고 있다고 생각하는 것",
-    description: "최근 3개월 동안 꾸준히 해왔거나 스스로 대견하게 느끼는 모습을 적어보세요.",
-    placeholder: "예: 바쁜 날에도 가족과 대화할 시간을 만들려고 노력했다.",
+  care: {
+    label: "요즘 내가 가족을 위해 애쓴 것은 무엇인가요?",
+    description: "크거나 특별하지 않아도 괜찮아요. 하나만 적어도 충분해요.",
+    placeholder: "예: 피곤해도 가족에게 다정하게 말하려고 노력했어요.",
     tone: "positive",
   },
-  recognition: {
-    label: "가족에게 인정받고 싶은 것",
-    description: "내가 애쓰고 있지만 가족이 아직 잘 모를 수 있는 마음과 행동을 적어보세요.",
-    placeholder: "예: 가족의 생활을 챙기기 위해 보이지 않는 곳에서도 많이 고민하고 있다.",
+  praise: {
+    label: "내가 스스로 칭찬해주고 싶은 모습은 무엇인가요?",
+    description: "내가 나에게 말해주고 싶은 고마운 모습을 적어보세요.",
+    placeholder: "예: 동생이 장난쳐도 바로 화내지 않으려고 참았어요.",
+    tone: "positive",
+  },
+  heart: {
+    label: "가족이 알아주었으면 하는 내 마음은 무엇인가요?",
+    description: "가족을 위해 애쓴 마음이 너무 당연하게만 지나가지 않았으면 하는 부분을 적어보세요.",
+    placeholder: "예: 나도 잘하고 싶은 마음이 있는데 가끔 표현이 서툴러요.",
     tone: "recognition",
+  },
+  hard: {
+    label: "요즘 내가 조금 힘들었던 점은 무엇인가요?",
+    description: "말하기 어려웠던 마음도 조심스럽게 적어볼 수 있어요.",
+    placeholder: "예: 내 말을 끝까지 들어주지 않을 때 조금 속상했어요.",
+    tone: "improve",
   },
 };
 
 const CATEGORY_META = {
-  strength: {
-    label: "잘하고 있는 것",
-    shortLabel: "잘하고 있어요",
-    description: "고맙거나 자랑스럽게 느낀 행동과 모습을 알려주세요.",
+  thanks: {
+    label: "이 가족에게 고마웠던 점",
+    shortLabel: "고마운 마음",
+    description: "고마웠던 장면이나 마음을 떠올려 적어보세요. 하나만 적어도 괜찮아요.",
     tone: "positive",
   },
-  improve: {
-    label: "개선해줬으면 하는 것",
-    shortLabel: "바라는 변화",
-    description: "비난보다 구체적인 행동과 바라는 모습을 적어주세요.",
+  doingWell: {
+    label: "이 가족이 잘하고 있다고 생각하는 점",
+    shortLabel: "잘하고 있어요",
+    description: "이 사람이 계속 이어가면 좋겠다고 느낀 모습을 알려주세요.",
+    tone: "positive",
+  },
+  wish: {
+    label: "이 가족에게 바라는 작은 변화",
+    shortLabel: "바라는 마음",
+    description: "상대가 해볼 수 있는 작은 행동으로 부드럽게 적어보세요.",
     tone: "improve",
   },
-  challenge: {
-    label: "도전해줬으면 하는 것",
-    shortLabel: "새로운 도전",
-    description: "그 사람이 한 걸음 더 성장할 수 있는 제안을 적어주세요.",
+  together: {
+    label: "함께 해보고 싶은 것",
+    shortLabel: "함께 하고 싶어요",
+    description: "같이 해보면 좋을 일이나 시간을 적어보세요.",
     tone: "challenge",
   },
 };
+
+const ACTIONABLE_CATEGORIES = ["wish", "together"];
+
+const PRACTICE_STEPS = [
+  { value: 0, label: "아직 시작 전" },
+  { value: 25, label: "조금 시작했어요" },
+  { value: 50, label: "절반 정도 해봤어요" },
+  { value: 75, label: "꽤 잘하고 있어요" },
+  { value: 100, label: "약속을 잘 지켰어요" },
+];
 
 const elements = {
   loginShell: document.querySelector("#loginShell"),
@@ -75,6 +104,8 @@ const elements = {
   familyOverview: document.querySelector("#familyOverview"),
   archiveList: document.querySelector("#archiveList"),
   toast: document.querySelector("#toast"),
+  welcomeModal: document.querySelector("#welcomeModal"),
+  welcomeStartButton: document.querySelector("#welcomeStartButton"),
 };
 
 let state = loadState();
@@ -109,11 +140,11 @@ function defaultCycleStartDate() {
 
 function cycleNameFromDate(value) {
   const date = new Date(`${value}T00:00:00`);
-  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 관계 점검`;
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 가족 마음 나누기`;
 }
 
 function cycleIdFromDate(value) {
-  return `relationship-${value}`;
+  return `heart-note-${value}`;
 }
 
 function defaultMembers() {
@@ -173,11 +204,16 @@ function normalizeMembers(members) {
 }
 
 function normalizeSelfReflection(item) {
+  const categoryMap = {
+    strength: "care",
+    recognition: "heart",
+  };
+  const category = SELF_REFLECTION_META[item.category] ? item.category : categoryMap[item.category] || "care";
   return {
     id: item.id || uid(),
     cycleId: item.cycleId || "",
     memberId: item.memberId || "father",
-    category: SELF_REFLECTION_META[item.category] ? item.category : "strength",
+    category,
     text: item.text || "",
     createdAt: item.createdAt || new Date().toISOString(),
     updatedAt: item.updatedAt || item.createdAt || new Date().toISOString(),
@@ -185,12 +221,18 @@ function normalizeSelfReflection(item) {
 }
 
 function normalizeFeedback(feedback) {
+  const categoryMap = {
+    strength: "doingWell",
+    improve: "wish",
+    challenge: "together",
+  };
+  const category = CATEGORY_META[feedback.category] ? feedback.category : categoryMap[feedback.category] || "thanks";
   return {
     id: feedback.id || uid(),
     cycleId: feedback.cycleId || "",
     authorId: feedback.authorId || "father",
     recipientId: feedback.recipientId || "mother",
-    category: CATEGORY_META[feedback.category] ? feedback.category : "strength",
+    category,
     text: feedback.text || "",
     createdAt: feedback.createdAt || new Date().toISOString(),
     updatedAt: feedback.updatedAt || feedback.createdAt || new Date().toISOString(),
@@ -198,15 +240,25 @@ function normalizeFeedback(feedback) {
 }
 
 function normalizeCommitment(commitment) {
+  const categoryMap = {
+    improve: "wish",
+    challenge: "together",
+  };
+  const category = ACTIONABLE_CATEGORIES.includes(commitment.category)
+    ? commitment.category
+    : categoryMap[commitment.category] || "wish";
   return {
     id: commitment.id || uid(),
     cycleId: commitment.cycleId || "",
     memberId: commitment.memberId || "father",
     sourceFeedbackId: commitment.sourceFeedbackId || "",
     authorId: commitment.authorId || "",
-    category: commitment.category === "challenge" ? "challenge" : "improve",
+    category,
     text: commitment.text || "",
+    reason: commitment.reason || "",
     plan: commitment.plan || "",
+    support: commitment.support || "",
+    weeklyLog: commitment.weeklyLog || "",
     progress: clampPercent(Number(commitment.progress || 0)),
     createdAt: commitment.createdAt || new Date().toISOString(),
     updatedAt: commitment.updatedAt || commitment.createdAt || new Date().toISOString(),
@@ -389,6 +441,7 @@ function loginMember(loginId, password) {
   localStorage.setItem(VIEW_KEY, currentView);
   elements.loginForm.reset();
   render();
+  showWelcomeModalOnce();
 }
 
 function logout() {
@@ -396,6 +449,17 @@ function logout() {
   activeRecipientId = null;
   localStorage.removeItem(SESSION_KEY);
   render();
+}
+
+function showWelcomeModalOnce() {
+  if (!elements.welcomeModal || localStorage.getItem(WELCOME_KEY) === "seen") return;
+  elements.welcomeModal.hidden = false;
+  elements.welcomeStartButton?.focus();
+}
+
+function closeWelcomeModal() {
+  localStorage.setItem(WELCOME_KEY, "seen");
+  if (elements.welcomeModal) elements.welcomeModal.hidden = true;
 }
 
 function ensureSession() {
@@ -462,8 +526,32 @@ function averageCommitmentProgress(memberId) {
   return Math.round(items.reduce((sum, item) => sum + item.progress, 0) / items.length);
 }
 
+function progressLabel(value) {
+  const progress = clampPercent(value);
+  return PRACTICE_STEPS.reduce((closest, step) =>
+    Math.abs(step.value - progress) < Math.abs(closest.value - progress) ? step : closest,
+  ).label;
+}
+
+function nearestPracticeStep(value) {
+  const progress = clampPercent(value);
+  return PRACTICE_STEPS.reduce((closest, step) =>
+    Math.abs(step.value - progress) < Math.abs(closest.value - progress) ? step : closest,
+  ).value;
+}
+
 function clampPercent(value) {
   return Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
+}
+
+function feedbackPlaceholder(category) {
+  const placeholders = {
+    thanks: "예: 엄마가 밥 챙겨줘서 고마웠어요.",
+    doingWell: "예: 아빠가 놀아줘서 좋았어요.",
+    wish: "예: 형이 화낼 때 조금 무서웠어요.",
+    together: "예: 동생이 내 물건을 만지기 전에 물어봐주면 좋겠어요.",
+  };
+  return placeholders[category] || "예: 나는 앞으로 말하기 전에 한 번 생각해볼게요.";
 }
 
 function render() {
@@ -478,7 +566,7 @@ function render() {
   const selfReflections = currentSelfReflections(member.id);
   const received = receivedFeedbacks(member.id);
   const commitments = activeCommitments(member.id);
-  elements.pageTitle.textContent = `${member.role} ${member.name}의 관계 점검`;
+  elements.pageTitle.textContent = `${member.role} ${member.name}의 마음노트`;
   elements.cycleCaption.textContent = `${state.cycleName} · ${formatCyclePeriod()}`;
   elements.myFeedbackProgress.textContent = `${progress}%`;
   elements.myFeedbackProgressBar.style.width = `${progress}%`;
@@ -520,12 +608,12 @@ function renderSelfReflections() {
               <span>나에게 묻기</span>
               <h3>${escapeHTML(meta.label)}</h3>
             </div>
-            <strong>${items.length}/${SELF_REFLECTION_LIMIT}</strong>
+            <strong>${items.length ? `${items.length}개` : "선택"}</strong>
           </div>
           <p>${escapeHTML(meta.description)}</p>
           <form class="self-reflection-form" data-category="${category}">
             <textarea rows="3" maxlength="200" placeholder="${escapeHTML(meta.placeholder)}" ${items.length >= SELF_REFLECTION_LIMIT ? "disabled" : ""} required></textarea>
-            <button class="primary-button" type="submit" ${items.length >= SELF_REFLECTION_LIMIT ? "disabled" : ""}>나의 이야기 추가</button>
+            <button class="primary-button" type="submit" ${items.length >= SELF_REFLECTION_LIMIT ? "disabled" : ""}>내 마음 저장하기</button>
           </form>
           <div class="self-reflection-list">
             ${
@@ -541,7 +629,7 @@ function renderSelfReflections() {
                       `,
                     )
                     .join("")
-                : emptyState("아직 적은 내용이 없어요", "나를 따뜻하게 바라보는 한 문장부터 시작해보세요.")
+                : emptyState("아직 적은 내용이 없어요", "한 문장만 적어도 괜찮아요.")
             }
           </div>
         </section>
@@ -561,7 +649,7 @@ function renderRecipientTabs() {
         <button type="button" data-recipient-id="${member.id}" aria-selected="${member.id === activeRecipientId}">
           <span>${escapeHTML(member.role)}</span>
           <strong>${escapeHTML(member.name)}</strong>
-          <small>${completed}/3 작성</small>
+          <small>${completed ? "마음 전하는 중" : "아직 전하기 전"}</small>
         </button>
       `;
     })
@@ -576,11 +664,11 @@ function renderRecipientSelfContext() {
     <div class="recipient-self-context-heading">
       <div>
         <p class="eyebrow">Before Feedback</p>
-        <h3>${escapeHTML(recipient.name)}님이 먼저 들려준 자기 이야기</h3>
+        <h3>${escapeHTML(recipient.name)}님이 먼저 들려준 마음</h3>
       </div>
-      <span>${items.length}개</span>
+      <span>${items.length ? "읽어보기" : "기다리는 중"}</span>
     </div>
-    <p class="recipient-self-context-guide">상대가 스스로 바라보는 모습과 인정받고 싶은 마음을 먼저 읽고 피드백을 작성해보세요.</p>
+    <p class="recipient-self-context-guide">상대가 어떤 마음으로 지내왔는지 먼저 읽고, 따뜻하게 이야기를 전해보세요.</p>
     <div class="recipient-self-context-grid">
       ${Object.entries(SELF_REFLECTION_META)
         .map(([category, meta]) => {
@@ -591,7 +679,7 @@ function renderRecipientSelfContext() {
               ${
                 categoryItems.length
                   ? `<ul>${categoryItems.map((item) => `<li>${escapeHTML(item.text)}</li>`).join("")}</ul>`
-                  : `<p>아직 작성한 내용이 없어요.</p>`
+                  : `<p>아직 들려준 마음이 없어요.</p>`
               }
             </section>
           `;
@@ -618,12 +706,12 @@ function renderFeedbackEditor() {
               <span>${escapeHTML(recipient.name)}에게</span>
               <h3>${escapeHTML(meta.label)}</h3>
             </div>
-            <strong>${items.length}/${FEEDBACK_LIMIT}</strong>
+            <strong>${items.length ? `${items.length}개` : "선택"}</strong>
           </div>
           <p>${escapeHTML(meta.description)}</p>
           <form class="feedback-form" data-category="${category}">
-            <textarea rows="3" maxlength="180" placeholder="구체적인 장면이나 행동을 중심으로 적어보세요." ${items.length >= FEEDBACK_LIMIT ? "disabled" : ""} required></textarea>
-            <button class="primary-button" type="submit" ${items.length >= FEEDBACK_LIMIT ? "disabled" : ""}>항목 추가</button>
+            <textarea rows="3" maxlength="180" placeholder="${feedbackPlaceholder(category)}" ${items.length >= FEEDBACK_LIMIT ? "disabled" : ""} required></textarea>
+            <button class="primary-button" type="submit" ${items.length >= FEEDBACK_LIMIT ? "disabled" : ""}>따뜻한 이야기 저장</button>
           </form>
           <div class="feedback-item-list">
             ${
@@ -634,12 +722,12 @@ function renderFeedbackEditor() {
                         <article class="feedback-item">
                           <span>${index + 1}</span>
                           <p>${escapeHTML(item.text)}</p>
-                          <button class="icon-text-button delete-feedback" type="button" data-feedback-id="${item.id}" aria-label="피드백 삭제">삭제</button>
+                          <button class="icon-text-button delete-feedback" type="button" data-feedback-id="${item.id}" aria-label="이야기 삭제">삭제</button>
                         </article>
                       `,
                     )
                     .join("")
-                : emptyState("아직 작성한 내용이 없어요", "한 가지 구체적인 마음부터 전해보세요.")
+                : emptyState("아직 적은 내용이 없어요", "하나만 적어도 충분해요.")
             }
           </div>
         </section>
@@ -658,7 +746,7 @@ function renderReceived() {
       ([category, meta], index) => `
         <article data-tone="${meta.tone}">
           <span>${escapeHTML(meta.shortLabel)}</span>
-          <strong>${counts[index]}</strong>
+          <strong>${counts[index] ? `${counts[index]}개` : "기다리는 중"}</strong>
         </article>
       `,
     )
@@ -667,7 +755,7 @@ function renderReceived() {
   if (!items.length) {
     elements.receivedList.innerHTML = emptyState(
       "아직 도착한 이야기가 없어요",
-      "가족이 내용을 작성하면 이 화면에서 확인할 수 있어요.",
+      "가족이 마음을 전하면 이 화면에서 천천히 읽을 수 있어요.",
     );
     return;
   }
@@ -680,7 +768,7 @@ function renderReceived() {
         <section class="received-group">
           <div class="received-group-heading" data-tone="${meta.tone}">
             <h3>${escapeHTML(meta.label)}</h3>
-            <span>${categoryItems.length}개</span>
+            <span>${categoryItems.length ? "마음 도착" : ""}</span>
           </div>
           <div class="received-card-grid">
             ${categoryItems
@@ -693,12 +781,12 @@ function renderReceived() {
                     <footer>
                       <span>${escapeHTML(author.role)} · ${escapeHTML(author.name)}</span>
                       ${
-                        category === "strength"
-                          ? `<strong>고마운 마음으로 간직하기</strong>`
+                        !ACTIONABLE_CATEGORIES.includes(category)
+                          ? `<strong>고마운 말로 저장할래요</strong>`
                           : `
                             <label class="commitment-toggle">
                               <input class="toggle-commitment" type="checkbox" data-feedback-id="${item.id}" ${commitment ? "checked" : ""} />
-                              <span>3개월 실천으로 선택</span>
+                              <span>${commitment ? "이번에 해볼래요" : "조금 더 생각해볼래요"}</span>
                             </label>
                           `
                       }
@@ -719,23 +807,23 @@ function renderCommitments() {
   const average = averageCommitmentProgress(currentMemberId);
   elements.commitmentOverview.innerHTML = `
     <div>
-      <span>선택한 실천</span>
+      <span>내가 선택한 작은 약속</span>
       <strong>${items.length}개</strong>
     </div>
     <div>
-      <span>평균 진행률</span>
-      <strong>${average}%</strong>
+      <span>지금 상태</span>
+      <strong>${progressLabel(average)}</strong>
     </div>
     <div class="overview-progress">
-      <span>3개월 실천 진행</span>
+      <span>작은 약속 실천 흐름</span>
       <div class="progress-track"><span style="width: ${average}%"></span></div>
     </div>
   `;
 
   if (!items.length) {
     elements.commitmentList.innerHTML = emptyState(
-      "아직 선택한 실천이 없어요",
-      "받은 이야기에서 개선 또는 도전 항목을 선택해보세요.",
+      "아직 정한 작은 약속이 없어요",
+      "가족이 전한 마음에서 이번에 해볼 수 있는 것 하나를 골라보세요.",
     );
     return;
   }
@@ -754,18 +842,34 @@ function renderCommitments() {
                 <h3>${escapeHTML(item.text)}</h3>
                 <p>${escapeHTML(author.role)} ${escapeHTML(author.name)}의 이야기</p>
               </div>
-              <strong class="commitment-progress-value">${item.progress}%</strong>
+              <strong class="commitment-progress-value">${progressLabel(item.progress)}</strong>
             </div>
             <label>
-              3개월 동안 실천할 작은 계획
+              내가 선택한 작은 약속
+              <textarea class="commitment-text" rows="2" maxlength="220" placeholder="이번 3개월 동안 내가 해보고 싶은 작은 약속을 적어보세요.">${escapeHTML(item.text)}</textarea>
+            </label>
+            <label>
+              이 약속을 정한 이유
+              <textarea class="commitment-reason" rows="2" maxlength="240" placeholder="왜 이 약속을 해보고 싶은지 적어보세요.">${escapeHTML(item.reason)}</textarea>
+            </label>
+            <label>
+              언제, 어떻게 해볼지
               <textarea class="commitment-plan" rows="3" maxlength="240" placeholder="언제, 어디서, 어떤 행동부터 시작할지 적어보세요.">${escapeHTML(item.plan)}</textarea>
             </label>
+            <label>
+              가족이 도와주면 좋은 점
+              <textarea class="commitment-support" rows="2" maxlength="220" placeholder="가족이 어떻게 도와주면 힘이 날지 적어보세요.">${escapeHTML(item.support)}</textarea>
+            </label>
+            <label>
+              이번 주 실천 기록
+              <textarea class="commitment-weekly-log" rows="3" maxlength="260" placeholder="이번 주에 해본 것, 느낀 것을 짧게 남겨보세요.">${escapeHTML(item.weeklyLog)}</textarea>
+            </label>
             <div class="range-control">
-              <label for="progress-${item.id}">현재 진행률</label>
-              <input id="progress-${item.id}" class="commitment-progress" type="range" min="0" max="100" step="10" value="${item.progress}" style="--progress: ${item.progress}%" />
+              <label for="progress-${item.id}">작은 약속 상태 · ${progressLabel(item.progress)}</label>
+              <input id="progress-${item.id}" class="commitment-progress" type="range" min="0" max="100" step="25" value="${nearestPracticeStep(item.progress)}" style="--progress: ${item.progress}%" />
             </div>
           </div>
-          <button class="icon-text-button remove-commitment" type="button" data-commitment-id="${item.id}">선택 해제</button>
+          <button class="icon-text-button remove-commitment" type="button" data-commitment-id="${item.id}">조금 더 생각해볼래요</button>
         </article>
       `;
     })
@@ -776,7 +880,6 @@ function renderFamilyOverview() {
   elements.familyOverview.innerHTML = state.members
     .map((member) => {
       const selfReflectionCount = currentSelfReflections(member.id).length;
-      const given = feedbacksByAuthor(member.id).length;
       const progress = feedbackProgress(member.id);
       const commitments = activeCommitments(member.id);
       const practiceProgress = averageCommitmentProgress(member.id);
@@ -787,14 +890,14 @@ function renderFamilyOverview() {
               <span>${escapeHTML(member.role)}</span>
               <h3>${escapeHTML(member.name)}</h3>
             </div>
-            <strong>${progress}%</strong>
+            <strong>${progress ? "참여 중" : "시작 전"}</strong>
           </div>
           <div class="progress-track"><span style="width: ${progress}%"></span></div>
           <dl>
-            <div><dt>나의 이야기</dt><dd>${selfReflectionCount}개</dd></div>
-            <div><dt>작성한 이야기</dt><dd>${given}개</dd></div>
-            <div><dt>선택한 실천</dt><dd>${commitments.length}개</dd></div>
-            <div><dt>실천 진행률</dt><dd>${practiceProgress}%</dd></div>
+            <div><dt>내 마음 돌아보기</dt><dd>${selfReflectionCount ? "참여" : "아직"}</dd></div>
+            <div><dt>가족에게 전하기</dt><dd>${feedbacksByAuthor(member.id).length ? "참여" : "아직"}</dd></div>
+            <div><dt>작은 약속</dt><dd>${commitments.length ? "정함" : "아직"}</dd></div>
+            <div><dt>약속 흐름</dt><dd>${progressLabel(practiceProgress)}</dd></div>
           </dl>
         </article>
       `;
@@ -805,8 +908,8 @@ function renderFamilyOverview() {
 function renderArchives() {
   if (!archives.length) {
     elements.archiveList.innerHTML = emptyState(
-      "아직 보관된 관계 점검이 없어요",
-      "부모 계정에서 현재 기록을 보관하면 여기에 표시됩니다.",
+      "아직 보관된 마음노트가 없어요",
+      "부모 계정에서 현재 마음노트를 보관하면 여기에 표시됩니다.",
     );
     return;
   }
@@ -820,10 +923,10 @@ function renderArchives() {
         <article class="archive-card">
           <div>
             <h4>${escapeHTML(archive.cycle_name)}</h4>
-            <p>나의 이야기 ${selfReflectionCount}개 · 가족 이야기 ${feedbackCount}개 · 3개월 실천 ${commitmentCount}개</p>
+            <p>내 마음 ${selfReflectionCount}개 · 가족 마음 ${feedbackCount}개 · 작은 약속 ${commitmentCount}개</p>
             <span>${escapeHTML(formatDateTime(archive.archived_at))} 보관</span>
           </div>
-          <button class="secondary-button download-archive" type="button" data-archive-id="${archive.id}">기록 받기</button>
+          <button class="secondary-button download-archive" type="button" data-archive-id="${archive.id}">마음노트 받기</button>
         </article>
       `;
     })
@@ -833,7 +936,7 @@ function renderArchives() {
 function addSelfReflection(category, text) {
   const items = currentSelfReflections().filter((item) => item.category === category);
   if (items.length >= SELF_REFLECTION_LIMIT) {
-    showToast("항목별로 5개까지 작성할 수 있어요.");
+    showToast("이 질문에는 여기까지 적어둘게요. 충분히 잘 돌아봤어요.");
     return;
   }
   const now = new Date().toISOString();
@@ -848,7 +951,7 @@ function addSelfReflection(category, text) {
   });
   saveState();
   render();
-  showToast("나의 이야기를 저장했어요.");
+  showToast("내 마음이 저장되었어요. 천천히 잘 돌아봤어요.");
 }
 
 function deleteSelfReflection(itemId) {
@@ -857,13 +960,13 @@ function deleteSelfReflection(itemId) {
   state.selfReflections = state.selfReflections.filter((entry) => entry.id !== itemId);
   saveState();
   render();
-  showToast("나의 이야기를 삭제했어요.");
+  showToast("내 마음 기록을 지웠어요.");
 }
 
 function addFeedback(category, text) {
   const count = feedbackCount(currentMemberId, activeRecipientId, category);
   if (count >= FEEDBACK_LIMIT) {
-    showToast("항목별로 5개까지 작성할 수 있어요.");
+    showToast("이 질문에는 여기까지 적어둘게요. 하나만 적어도 충분해요.");
     return;
   }
   const now = new Date().toISOString();
@@ -879,7 +982,7 @@ function addFeedback(category, text) {
   });
   saveState();
   render();
-  showToast("가족에게 전할 이야기를 저장했어요.");
+  showToast("가족에게 전할 따뜻한 이야기가 저장되었어요.");
 }
 
 function deleteFeedback(feedbackId) {
@@ -889,12 +992,12 @@ function deleteFeedback(feedbackId) {
   state.commitments = state.commitments.filter((item) => item.sourceFeedbackId !== feedbackId);
   saveState();
   render();
-  showToast("항목을 삭제했어요.");
+  showToast("전하려던 이야기를 지웠어요.");
 }
 
 function toggleCommitment(feedbackId, selected) {
   const feedback = state.feedbacks.find(
-    (item) => item.id === feedbackId && item.recipientId === currentMemberId && item.category !== "strength",
+    (item) => item.id === feedbackId && item.recipientId === currentMemberId && ACTIONABLE_CATEGORIES.includes(item.category),
   );
   if (!feedback) return;
   const existing = state.commitments.find(
@@ -910,14 +1013,19 @@ function toggleCommitment(feedbackId, selected) {
       authorId: feedback.authorId,
       category: feedback.category,
       text: feedback.text,
+      reason: "",
       plan: "",
+      support: "",
+      weeklyLog: "",
       progress: 0,
       createdAt: now,
       updatedAt: now,
     });
+    showToast("이번 3개월의 작은 약속이 정해졌어요.");
   }
   if (!selected && existing) {
     state.commitments = state.commitments.filter((item) => item.id !== existing.id);
+    showToast("조금 더 생각해보기로 했어요.");
   }
   saveState();
   render();
@@ -930,10 +1038,25 @@ function updateCommitmentFromEvent(event) {
   if (event.target.matches(".commitment-plan")) {
     commitment.plan = event.target.value;
   }
+  if (event.target.matches(".commitment-text")) {
+    commitment.text = event.target.value;
+  }
+  if (event.target.matches(".commitment-reason")) {
+    commitment.reason = event.target.value;
+  }
+  if (event.target.matches(".commitment-support")) {
+    commitment.support = event.target.value;
+  }
+  if (event.target.matches(".commitment-weekly-log")) {
+    commitment.weeklyLog = event.target.value;
+  }
   if (event.target.matches(".commitment-progress")) {
     commitment.progress = clampPercent(Number(event.target.value));
     event.target.style.setProperty("--progress", `${commitment.progress}%`);
-    card.querySelector(".commitment-progress-value").textContent = `${commitment.progress}%`;
+    card.querySelector(".commitment-progress-value").textContent = progressLabel(commitment.progress);
+    const rangeLabel = card.querySelector(`label[for="progress-${commitment.id}"]`);
+    if (rangeLabel) rangeLabel.textContent = `작은 약속 상태 · ${progressLabel(commitment.progress)}`;
+    showToast("오늘의 실천 기록이 저장되었어요.");
   }
   commitment.updatedAt = new Date().toISOString();
   saveState();
@@ -945,7 +1068,7 @@ function renderCommitmentSummaryOnly() {
   const average = averageCommitmentProgress(currentMemberId);
   const values = elements.commitmentOverview.querySelectorAll("strong");
   if (values[0]) values[0].textContent = `${items.length}개`;
-  if (values[1]) values[1].textContent = `${average}%`;
+  if (values[1]) values[1].textContent = progressLabel(average);
   const bar = elements.commitmentOverview.querySelector(".progress-track span");
   if (bar) bar.style.width = `${average}%`;
 }
@@ -970,12 +1093,12 @@ async function archiveCurrentCycle(showToastMessage = true) {
   if (!response.ok) throw new Error(await response.text());
   await fetchArchives();
   setSyncStatus("가족과 공유됨", "ok");
-  if (showToastMessage) showToast("현재 관계 점검 기록을 보관했어요.");
+  if (showToastMessage) showToast("현재 마음노트를 보관했어요.");
 }
 
 async function startNextCycle() {
   if (!isParent(currentMemberId)) return;
-  if (!window.confirm("현재 기록을 보관하고 새로운 3개월 관계 점검을 시작할까요?")) return;
+  if (!window.confirm("현재 마음노트를 보관하고 새로운 3개월 가족 마음 나누기를 시작할까요?")) return;
   try {
     await archiveCurrentCycle(false);
     const nextStart = formatDateInput(addMonths(new Date(`${state.cycleStartDate}T00:00:00`), 3));
@@ -984,7 +1107,7 @@ async function startNextCycle() {
     saveState();
     await pushRemoteState();
     render();
-    showToast("새로운 3개월 관계 점검을 시작했어요.");
+    showToast("새로운 3개월 가족 마음 나누기를 시작했어요.");
   } catch (error) {
     console.error(error);
     setSyncStatus("새 주기 시작 실패", "error");
@@ -1046,6 +1169,8 @@ elements.loginForm.addEventListener("submit", (event) => {
 });
 
 elements.logoutButton.addEventListener("click", logout);
+
+elements.welcomeStartButton?.addEventListener("click", closeWelcomeModal);
 
 document.addEventListener("click", (event) => {
   const viewButton = event.target.closest("[data-view]");
@@ -1139,4 +1264,5 @@ elements.archiveCycleButton.addEventListener("click", async () => {
 elements.startNextCycleButton.addEventListener("click", startNextCycle);
 
 render();
+if (currentMemberId) showWelcomeModalOnce();
 initRemoteSync();
