@@ -28,19 +28,19 @@ const SELF_REFLECTION_META = {
 
 const CATEGORY_META = {
   thanks: {
-    label: "이 가족에게 고마웠던 점",
+    label: "고마웠던 점",
     shortLabel: "고마운 마음",
     description: "고마웠던 장면이나 마음을 떠올려 적어보세요. 하나만 적어도 괜찮아요.",
     tone: "positive",
   },
   doingWell: {
-    label: "이 가족이 잘하고 있다고 생각하는 점",
+    label: "잘하고 있다고 생각하는 점",
     shortLabel: "잘하고 있어요",
     description: "이 사람이 계속 이어가면 좋겠다고 느낀 모습을 알려주세요.",
     tone: "positive",
   },
   wish: {
-    label: "이 가족에게 바라는 작은 변화",
+    label: "바라는 작은 변화",
     shortLabel: "바라는 마음",
     description: "상대가 해볼 수 있는 작은 행동으로 부드럽게 적어보세요.",
     tone: "improve",
@@ -414,6 +414,59 @@ function memberLabel(member) {
   return `${member.role} · ${member.name}`;
 }
 
+const FAMILY_RELATION_LABELS = {
+  father: {
+    mother: "아내",
+    son1: "큰 아들",
+    son2: "둘째 아들",
+    son3: "셋째 아들",
+    daughter1: "막내 딸",
+  },
+  mother: {
+    father: "남편",
+    son1: "큰 아들",
+    son2: "둘째 아들",
+    son3: "셋째 아들",
+    daughter1: "막내 딸",
+  },
+  son1: {
+    father: "아빠",
+    mother: "엄마",
+    son2: "둘째 동생",
+    son3: "셋째 동생",
+    daughter1: "막내 동생",
+  },
+  son2: {
+    father: "아빠",
+    mother: "엄마",
+    son1: "큰 형",
+    son3: "셋째 동생",
+    daughter1: "막내 동생",
+  },
+  son3: {
+    father: "아빠",
+    mother: "엄마",
+    son1: "큰 형",
+    son2: "작은 형",
+    daughter1: "막내 동생",
+  },
+  daughter1: {
+    father: "아빠",
+    mother: "엄마",
+    son1: "큰 오빠",
+    son2: "둘째 오빠",
+    son3: "셋째 오빠",
+  },
+};
+
+function relationLabel(authorId, recipientId) {
+  return FAMILY_RELATION_LABELS[authorId]?.[recipientId] || memberById(recipientId).role;
+}
+
+function relationToLabel(authorId, recipientId) {
+  return `${relationLabel(authorId, recipientId)}에게`;
+}
+
 function isParent(memberId) {
   return memberId === "father" || memberId === "mother";
 }
@@ -636,10 +689,11 @@ function renderRecipientTabs() {
       const completed = Object.keys(CATEGORY_META).filter(
         (category) => feedbackCount(currentMemberId, member.id, category) > 0,
       ).length;
+      const relation = relationToLabel(currentMemberId, member.id);
       return `
         <button type="button" data-recipient-id="${member.id}" aria-selected="${member.id === activeRecipientId}">
-          <span>${escapeHTML(member.role)}</span>
-          <strong>${escapeHTML(member.name)}</strong>
+          <span>나는</span>
+          <strong>${escapeHTML(relation)}</strong>
           <small>${completed ? "마음 전하는 중" : "아직 전하기 전"}</small>
         </button>
       `;
@@ -650,11 +704,12 @@ function renderRecipientTabs() {
 function renderRecipientSelfContext() {
   const recipient = memberById(activeRecipientId);
   const items = currentSelfReflections(recipient.id);
+  const relation = relationToLabel(currentMemberId, recipient.id);
 
   elements.recipientSelfContext.innerHTML = `
     <div class="recipient-self-context-heading">
       <div>
-        <p class="eyebrow">Before Feedback</p>
+        <p class="eyebrow">${escapeHTML(relation)}</p>
         <h3>${escapeHTML(recipient.name)}님이 먼저 들려준 마음</h3>
       </div>
       <span>${items.length ? "읽어보기" : "기다리는 중"}</span>
@@ -682,6 +737,7 @@ function renderRecipientSelfContext() {
 
 function renderFeedbackEditor() {
   const recipient = memberById(activeRecipientId);
+  const relation = relationToLabel(currentMemberId, activeRecipientId);
   elements.feedbackEditor.innerHTML = Object.entries(CATEGORY_META)
     .map(([category, meta]) => {
       const items = currentFeedbacks()
@@ -694,7 +750,7 @@ function renderFeedbackEditor() {
         <section class="feedback-column" data-tone="${meta.tone}">
           <div class="feedback-column-heading">
             <div>
-              <span>${escapeHTML(recipient.name)}에게</span>
+              <span>나는 ${escapeHTML(relation)}</span>
               <h3>${escapeHTML(meta.label)}</h3>
             </div>
             <strong>${items.length ? `${items.length}개` : "선택"}</strong>
